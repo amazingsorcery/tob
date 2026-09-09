@@ -8,10 +8,7 @@ import { WorkStructuredData } from "@/components/structured-data";
 import { Prose } from "@/components/reading/prose";
 import {
   chapterLabel,
-  count,
-  duration,
   plainSummary,
-  workLength,
 } from "@/components/reading/work-meta";
 import { Badge } from "@/components/ui/badge";
 import { brand } from "@/config/brand";
@@ -85,7 +82,6 @@ export default async function WorkPage({ params }: { params: Promise<{ work: str
             <Badge variant="outline" className="capitalize">
               {work.field}
             </Badge>
-            <span className="tabular text-sm text-muted-foreground">{workLength(work)}</span>
           </div>
           {first ? (
             <p className="mt-7">
@@ -139,9 +135,6 @@ export default async function WorkPage({ params }: { params: Promise<{ work: str
                         )}
                       </Link>
                     </h3>
-                    <span className="tabular text-sm text-muted-foreground">
-                      {duration(chapter.minutes)}
-                    </span>
                   </div>
 
                   {chapter.sections.length > 0 ? (
@@ -168,9 +161,6 @@ export default async function WorkPage({ params }: { params: Promise<{ work: str
             })}
           </ol>
 
-          <p className="mt-8 tabular text-sm text-muted-foreground">
-            {`${count(work.words)} words in total. Reading times assume 200 words a minute and count prose only, not notation.`}
-          </p>
         </section>
       </article>
     </div>

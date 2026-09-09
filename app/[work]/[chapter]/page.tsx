@@ -8,7 +8,7 @@ import { InlineMarkdown } from "@/components/reading/inline-markdown";
 import { KatexStylesheet } from "@/components/reading/katex-stylesheet";
 import { ChapterStructuredData } from "@/components/structured-data";
 import { Prose } from "@/components/reading/prose";
-import { chapterLabel, duration, neighbours, plainSummary } from "@/components/reading/work-meta";
+import { chapterLabel, neighbours, plainSummary } from "@/components/reading/work-meta";
 import { allWorks, chapterBySlug, workBySlug } from "@/lib/works";
 
 /**
@@ -131,7 +131,7 @@ export default async function ChapterPage({
               {chapter.title}
             </h1>
             <p className="tabular mt-3 text-sm text-muted-foreground">
-              {duration(chapter.minutes)} · {work.title}
+              {work.title}
             </p>
           </header>
 

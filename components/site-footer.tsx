@@ -28,7 +28,7 @@ export function SiteFooter() {
           reuser who cannot find the terms cannot comply with them.
         */}
         <p className="mt-6 text-xs text-muted-foreground">
-          {`© ${brand.copyrightYear} ${brand.author}. `}
+          {`${brand.author}. `}
           <a
             href={brand.licence.url}
             rel="license noopener"

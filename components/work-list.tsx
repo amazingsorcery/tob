@@ -1,6 +1,5 @@
 import Link from "next/link";
 
-import { workLength } from "@/components/reading/work-meta";
 import { allWorks } from "@/lib/works";
 
 /**
@@ -15,10 +14,9 @@ export function WorkList({ headingId }: { headingId?: string }) {
         <li key={work.slug}>
           <Link
             href={`/${work.slug}`}
-            className="flex min-h-11 flex-col justify-center gap-1 py-4 hover:bg-muted"
+            className="flex min-h-11 flex-col justify-center py-4 hover:bg-muted"
           >
             <span className="font-display text-lg font-semibold text-foreground">{work.title}</span>
-            <span className="tabular text-sm text-muted-foreground">{workLength(work)}</span>
           </Link>
         </li>
       ))}

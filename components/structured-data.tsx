@@ -17,7 +17,6 @@ function base(work: Work) {
     author: { "@type": "Person", name: brand.author },
     license: brand.licence.url,
     copyrightHolder: { "@type": "Person", name: brand.author },
-    copyrightYear: brand.copyrightYear,
     inLanguage: "en",
     isAccessibleForFree: true,
     // The credit a reuser must give, stated in the property built for it.

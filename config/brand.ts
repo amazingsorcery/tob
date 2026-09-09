@@ -48,7 +48,6 @@ export const brand = {
   domain: DOMAIN,
   url: `https://${DOMAIN}`,
 
-  copyrightYear: 2026,
 
   /**
    * The licence the works are published under.
@@ -65,7 +64,7 @@ export const brand = {
     fullName: "Creative Commons Attribution 4.0 International",
     url: "https://creativecommons.org/licenses/by/4.0/",
     /** The credit a reuser must give. Author, then the work's own title where applicable. */
-    creditLine: `© ${AUTHOR}, licensed CC BY 4.0`,
+    creditLine: `${AUTHOR}, licensed CC BY 4.0`,
   },
 } as const;
 
