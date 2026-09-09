@@ -1,75 +1,55 @@
 # syntax=docker/dockerfile:1.7
 #
-# Multi-stage build for the Next.js 15 App Router application.
+# Multi-stage build for the Next.js 15 App Router site.
 #
-#   base     -> pinned Node 22 + corepack-managed pnpm, shared by every stage
-#   deps     -> node_modules only (the expensive, rarely-invalidated layer)
-#   builder  -> `pnpm build` producing .next/standalone
-#   migrator -> one-shot image for `pnpm db:migrate` / `pnpm db:seed` (needs devDeps: tsx)
-#   runner   -> final runtime image: slim, non-root, production-only files
+#   base    -> pinned Node 22 + corepack-managed pnpm, shared by every stage
+#   deps    -> node_modules only (the expensive, rarely-invalidated layer)
+#   builder -> `pnpm build` producing .next/standalone
+#   runner  -> the only image that ships: slim, non-root, production files only
 #
-# Build targets:
-#   docker build --target runner   -t app-web:current    .
-#   docker build --target migrator -t app-migrate:current .
+# Build:
+#   docker build --target runner -t tob-web:current .
 #
-# THERE IS NO `worker` STAGE, and its absence is a decision (ADR 0031). This file used to
-# carry a `FROM migrator AS worker` stage ending in `CMD ["pnpm", "worker"]` — a script that
-# never existed in package.json, so the container it produced crash-looped from the first
-# `docker compose up` and `infra/deploy.sh` rolled the deploy back on its health gate. QV-08.
-# The stage, its `/healthz` contract and the `egress` network that isolated it are recorded
-# in ADR 0031 and docs/deploy/HANDOFF.md §14 so they can be restored rather than re-derived.
-# Two images ship: `runner` and `migrator`.
+# ONE image ships. There is no `migrator` stage any more, and its absence is the point:
+# this site has no database, no migrations and no seed. The stage existed to run
+# `tsx db/migrate.ts` with devDependencies present; there is no db/ directory to run.
+# Likewise there is no `worker` stage and never was one that worked.
 #
 # NO SECRETS ARE ACCEPTED OR BAKED IN. There is no ARG or ENV here that carries a
-# credential, and no `--mount=type=secret` is required, because the build does not talk to
-# the database or to any authenticated service. Every secret is supplied at *runtime* via
-# env_file. If a future build step ever needs a token, use BuildKit secret mounts
-# (`RUN --mount=type=secret,id=...`) and never an ARG — ARG values are visible in
-# `docker history`.
+# credential, and none is needed: the build reads only files in this repository. The
+# application itself reads no environment variable at run time either — the only
+# configuration in the whole deployment is Caddy's DOMAIN and ACME_EMAIL. If a future build
+# step ever needs a token, use a BuildKit secret mount (`RUN --mount=type=secret,id=...`)
+# and never an ARG — ARG values are visible in `docker history`.
 
 # ---------------------------------------------------------------------------------------
 # base
 # ---------------------------------------------------------------------------------------
-# bookworm-slim rather than alpine: the app links against native modules (pg, esbuild via
-# tsx, sharp if it is ever added) and glibc avoids a whole class of musl-only bugs. It is
-# ~40 MB larger and worth it for something that must run unattended for months.
+# bookworm-slim rather than alpine: glibc avoids a class of musl-only bugs in native
+# modules (esbuild via tsx today, sharp if it is ever added). ~40 MB larger and worth it
+# for something that must run unattended for months.
 #
-# NOTE ON PINNING: this is pinned to the major line only. Pin a digest before you consider
-# the deployment stable — see docs/deploy/HANDOFF.md for the exact command to resolve one.
+# PINNING: this is pinned to the major line only. Pin a digest before you consider the
+# deployment stable — see docs/deploy/RUNBOOK.md, "Pinning the base image".
 FROM node:22-bookworm-slim AS base
 
 ENV PNPM_HOME="/pnpm" \
     PATH="/pnpm:$PATH" \
     # Corepack must not stop a non-interactive build to ask about downloading pnpm.
     COREPACK_ENABLE_DOWNLOAD_PROMPT=0 \
-    # Shared and world-readable. `corepack prepare` runs as root, but the migrator and
-    # runner stages both switch to USER node, whose home is /home/node — a cache under
-    # /root is unreadable to them, so corepack silently falls back to downloading. That
-    # fallback is the entire failure this pair of settings exists to prevent.
+    # Shared and world-readable. `corepack prepare` runs as root, but the runner stage
+    # switches to USER node, whose home is /home/node — a cache under /root is unreadable
+    # to it and corepack then silently falls back to downloading pnpm at run time.
     COREPACK_HOME=/usr/local/corepack \
     NEXT_TELEMETRY_DISABLED=1
 
-# corepack ships with Node 22. `corepack enable` makes the `pnpm` shim available; the shim
-# then reads the "packageManager" field in package.json and materialises exactly that
-# version (pnpm@11.1.3), so the container and CI cannot drift from the lockfile's producer.
+# corepack ships with Node 22. `corepack enable` installs the `pnpm` shim; the shim reads
+# the "packageManager" field in package.json and materialises exactly that version, so the
+# image and CI cannot drift from the lockfile's producer.
 #
-# `corepack prepare --activate` is not optional here, and the first real deploy is what
-# proved it. The shim downloads pnpm ON FIRST USE, at RUN TIME. The migrate container runs
-# on the `backend` network, which is `internal: true` and has no route to the internet — by
-# design, since the database must not be reachable from outside. So `pnpm db:migrate` died
-# with `getaddrinfo EAI_AGAIN registry.npmjs.org` and took the deploy with it.
-#
-# Preparing the version at BUILD time, when the network is available, bakes the tarball into
-# the image. Nothing is fetched at run time, which is also the correct property for a
-# migration step: it must not depend on npm being reachable, or up, at the moment you are
-# trying to fix production.
-#
-# COREPACK_HOME is set explicitly, and that is the half that took a second deploy to find.
-# `corepack prepare` runs as root and would cache into /root/.cache/node/corepack; both the
-# migrator and runner stages then `USER node`, whose home is /home/node, so the cache is
-# unreadable and corepack silently falls back to downloading — exactly the failure the
-# prepare was added to prevent. A shared path plus a+rX makes the cache readable by whoever
-# the stage ends up running as.
+# `corepack prepare --activate` bakes the pnpm tarball into the image at BUILD time, when
+# the network is known to be available. Without it the shim downloads pnpm on FIRST USE,
+# at run time, which is the wrong moment to depend on npm being reachable.
 RUN corepack enable \
     && corepack prepare pnpm@11.1.3 --activate \
     && chmod -R a+rX /usr/local/corepack
@@ -80,21 +60,17 @@ WORKDIR /app
 # ---------------------------------------------------------------------------------------
 # deps — the cache-critical stage
 # ---------------------------------------------------------------------------------------
-# Only the manifests are copied here. Application source changes therefore do NOT
-# invalidate this layer, and a normal code-only deploy skips the install entirely.
+# Only the manifests are copied here, so editing a chapter or a component does NOT
+# invalidate this layer and a content-only deploy skips the install entirely.
 FROM base AS deps
 
 # pnpm-workspace.yaml is copied because pnpm reads it at install time (it carries the
-# build-script allowlist). It is absent from many single-package repos; the wildcard-free
-# explicit copy would fail if it did not exist, so it is listed after the required files
-# and this repo does have it.
+# build-script allowlist).
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 
 # --frozen-lockfile: fail the build rather than silently resolve a different tree.
-# Dev dependencies ARE installed here — the build needs typescript, tailwind and eslint,
-# and the migrator stage needs tsx. None of this reaches the runner stage.
-# The cache mount keeps the pnpm content-addressable store across builds without putting
-# it in a layer.
+# Dev dependencies ARE installed: the build needs typescript, tailwind and tsx. None of
+# this reaches the runner stage, which copies only .next/standalone's pruned tree.
 RUN --mount=type=cache,id=pnpm-store,target=/pnpm/store \
     pnpm install --frozen-lockfile
 
@@ -107,71 +83,53 @@ FROM base AS builder
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# NODE_ENV=production during the build gives production React, minification and the
-# production Tailwind pass. It does not prune node_modules (that already happened above).
+# NODE_ENV=production gives production React, minification and the production Tailwind
+# pass. It does not prune node_modules (that already happened above).
 ENV NODE_ENV=production
 
+# `pnpm build` is `tsx scripts/copy-katex-assets.ts && next build`. The first half matters
+# here: `public/katex/` is GENERATED and gitignored, and every work that carries
+# mathematics links `/katex/katex.min.css`. A build that skipped it would succeed, ship,
+# and serve a 404 for that stylesheet — every equation on the site rendering as
+# unpositioned glyphs, with no error anywhere. `tsx` is a devDependency and is present
+# because the deps stage installs the full tree. The guard below asserts the result rather
+# than trusting the script name to stay the same.
 RUN pnpm build
 
-# ---- Standalone layout guard -----------------------------------------------------------
-# `next build` only emits .next/standalone when next.config.ts sets `output: "standalone"`.
-# If that setting is missing the build "succeeds" and the runner stage would then copy
-# nothing and crash at start with an opaque MODULE_NOT_FOUND. Fail here instead, loudly.
+# ---- Build output guards ---------------------------------------------------------------
+# Three assertions, each covering a failure that otherwise ships as a broken site rather
+# than a failed build.
 #
-# The second check matters just as much: Next.js places server.js at the *workspace root
-# relative path* inside .next/standalone. In a monorepo (or any repo Next.js decides is a
-# monorepo because of a pnpm-workspace.yaml above the app) the entrypoint lands at
-# .next/standalone/<path/to/app>/server.js instead of .next/standalone/server.js.
-# This repo has the app and pnpm-workspace.yaml at the same directory, so the flat layout
-# is expected — but assert it rather than assume it, because the failure mode if this ever
-# changes is a container that builds fine and will not boot.
+# 1. .next/standalone exists. `next build` only emits it when next.config.ts sets
+#    `output: "standalone"`. Without that setting the build "succeeds", the runner stage
+#    copies nothing, and the container dies at start with an opaque MODULE_NOT_FOUND.
+# 2. server.js is at the TOP of .next/standalone. Next places it at the workspace-root
+#    relative path; a repo that Next decides is a monorepo (pnpm-workspace.yaml above the
+#    app) nests it under a subdirectory instead. This repo is flat, so assert the flat
+#    layout rather than assume it.
+# 3. The KaTeX stylesheet is present. It is generated by the first half of `pnpm build`
+#    and is not in the repository, so "the image has it" is a fact worth asserting rather
+#    than assuming — its absence is invisible until a reader opens a chapter.
 RUN set -eu; \
     if [ ! -d .next/standalone ]; then \
       echo "FATAL: .next/standalone was not produced."; \
       echo "       next.config.ts must set: output: \"standalone\""; \
-      echo "       See docs/deploy/HANDOFF.md, requirement #1."; \
       exit 1; \
     fi; \
     if [ ! -f .next/standalone/server.js ]; then \
       echo "FATAL: .next/standalone/server.js is missing. Next.js nested the standalone"; \
       echo "       output under a workspace subpath. Found instead:"; \
       find .next/standalone -maxdepth 3 -name server.js -print; \
-      echo "       Fix the COPY paths in the runner stage to match, or set"; \
-      echo "       outputFileTracingRoot in next.config.ts."; \
+      echo "       Fix the COPY paths in the runner stage, or set outputFileTracingRoot."; \
       exit 1; \
     fi; \
-    echo "OK: standalone entrypoint at .next/standalone/server.js"
-
-# `COPY /app/public ./public` in the runner stage is a hard error when the directory does
-# not exist ("no source files were specified"), and a Next.js app is not required to have
-# one. Guaranteeing it exists here keeps the runner stage's COPY unconditional instead of
-# making the image build depend on whether anyone has added a favicon yet.
-RUN mkdir -p public
-
-
-# ---------------------------------------------------------------------------------------
-# migrator — one-shot image, never long-running
-# ---------------------------------------------------------------------------------------
-# `pnpm db:migrate` is `tsx db/migrate.ts`. tsx is a devDependency and is deliberately NOT
-# in the runtime image, and Next.js's standalone tracer would not include db/migrate.ts
-# either (nothing in the request path imports it). So migrations get their own image built
-# from the same source, run with `docker compose run --rm migrate`, and thrown away.
-#
-# The whole source tree is copied because the Drizzle SQL migration folder location is
-# owned by the backend engineer (db/migrations, drizzle/, or whatever drizzle.config.ts
-# points at) and hard-coding a guess here would break the day it moves. This image is
-# ephemeral and never exposed, so the extra size costs nothing at runtime.
-FROM base AS migrator
-
-ENV NODE_ENV=production
-
-COPY --from=deps /app/node_modules ./node_modules
-COPY . .
-
-USER node
-
-# Overridable: `docker compose run --rm migrate pnpm db:seed`
-CMD ["pnpm", "db:migrate"]
+    if [ ! -f public/katex/katex.min.css ]; then \
+      echo "FATAL: public/katex/katex.min.css is missing."; \
+      echo "       scripts/copy-katex-assets.ts did not run or did not produce it."; \
+      echo "       Every equation on the site depends on this stylesheet."; \
+      exit 1; \
+    fi; \
+    echo "OK: standalone entrypoint present; katex $(cat public/katex/VERSION) assets present"
 
 
 # ---------------------------------------------------------------------------------------
@@ -188,42 +146,45 @@ ENV NODE_ENV=production \
     HOSTNAME=0.0.0.0
 
 # The official node images already provide an unprivileged `node` user (uid/gid 1000).
-# Reusing it is one less thing to get wrong than minting a new one, and it owns nothing
-# outside /app.
+# Reusing it is one less thing to get wrong than minting one, and it owns nothing outside
+# /app.
 WORKDIR /app
 
 # --- Standalone output layout, and why each path is what it is -------------------------
 #
-#   .next/standalone/           -> server.js + a pruned node_modules + package.json.
-#                                  This is the whole server. Copy it to /app.
-#   .next/static/               -> hashed JS/CSS chunks. The tracer deliberately EXCLUDES
-#                                  these from standalone because they are meant to be
-#                                  served by a CDN. We have no CDN, so they must be placed
-#                                  at /app/.next/static — i.e. *inside* the .next directory
-#                                  that came from standalone. Getting this wrong yields a
-#                                  page that renders HTML and then 404s every chunk.
-#   public/                     -> also excluded from standalone for the same reason, and
-#                                  also served by server.js from /app/public.
+#   .next/standalone/  -> server.js + a pruned node_modules + package.json. The whole
+#                         server. Copy it to /app.
+#   .next/static/      -> hashed JS/CSS chunks and the self-hosted next/font woff2 files.
+#                         The tracer EXCLUDES these from standalone because they are meant
+#                         to come from a CDN. There is no CDN here, so they must land at
+#                         /app/.next/static — inside the .next directory that came from
+#                         standalone. Getting this wrong yields a page that renders HTML
+#                         and then 404s every chunk and every font.
+#   public/            -> also excluded from standalone for the same reason, and also
+#                         served by server.js. Carries /katex/katex.min.css and its fonts.
 #
 # Order matters: standalone first (it creates /app/.next), then static into it.
 COPY --from=builder --chown=node:node /app/.next/standalone ./
 COPY --from=builder --chown=node:node /app/.next/static ./.next/static
 COPY --from=builder --chown=node:node /app/public ./public
 
-# The Next.js server writes to .next/cache at runtime (fetch cache, and the ISR cache if
-# any route ever revalidates). Without a writable directory owned by the runtime user the
-# server logs permission errors on every cache write.
+# Next writes to .next/cache at run time even when every route is prerendered (it keeps an
+# in-memory-backed fetch cache directory). Without a writable directory owned by the
+# runtime user the server logs a permission error on every write.
 RUN mkdir -p .next/cache && chown -R node:node .next/cache
 
 USER node
 
 EXPOSE 3000
 
-# Uses the same /api/health contract Caddy and deploy.sh rely on (see HANDOFF.md #2).
-# node -e rather than curl/wget: bookworm-slim ships neither, and Node 22 has global fetch,
-# so this adds zero packages and zero attack surface. A non-2xx (which the endpoint returns
-# when Postgres is unreachable) marks the container unhealthy.
-HEALTHCHECK --interval=30s --timeout=5s --start-period=45s --retries=3 \
-  CMD ["node", "-e", "fetch('http://127.0.0.1:'+(process.env.PORT||3000)+'/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+# THE FRONT PAGE IS THE HEALTH CHECK. There is no /api/health on this site and there must
+# not be: every route is prerendered at build time, so an endpoint that reports "healthy"
+# would be reporting on nothing but the Node process — which is exactly what a 200 from /
+# already proves, without shipping a route that exists only for monitoring.
+#
+# `node -e` rather than curl/wget: bookworm-slim ships neither, and Node 22 has global
+# fetch, so this adds no packages and no attack surface.
+HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
+  CMD ["node", "-e", "fetch('http://127.0.0.1:'+(process.env.PORT||3000)+'/').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
 
 CMD ["node", "server.js"]

@@ -1,48 +1,33 @@
 # Production stack for a single Ubuntu LTS VPS.
 #
-#   caddy   -> the only service with published ports. Terminates TLS, sets security headers.
-#   web     -> Next.js standalone server. No published port; reachable only as web:3000.
-#   db      -> PostgreSQL 16 on a named volume, on an egress-less internal network.
-#   migrate -> one-shot, profile-gated. Never runs as part of `up`.
+#   caddy -> the only service with published ports. Terminates TLS, sets the security
+#            headers and the CSP, reverse-proxies everything to web:3000.
+#   web   -> the Next.js standalone server, serving 39 pages that were all rendered at
+#            build time. No published port; reachable only as web:3000.
 #
-# THREE long-running containers, plus the one-shot. ADR 0019 raised this to five; ADR 0031
-# put it back to three by removing `worker` and `redis`, because `pnpm worker` never existed
-# (so the container crash-looped from the first deploy) and nothing in the application ever
-# opened a Redis connection. Read ADR 0031 before adding either back -- it records what they
-# were for, what their absence costs, and the four conditions that bring them back.
-#
-# SIZING. Declared limits are db 2 GB + web 2 GB + caddy 256 MB = 4.25 GB, down from 6 GB.
-# product-brief section 5 still names an 8 GB target and this file does not overrule the
-# brief: 8 GB has comfortable headroom and 4 GB is plausible. NEITHER HAS BEEN MEASURED on a
-# real box -- see docs/deploy/HANDOFF.md register 33, which still says so.
+# TWO long-running containers. There is no `db`: the site has no database, no auth, no API
+# and no request-time data, so there is nothing to store and nothing to migrate. The
+# profile-gated `migrate` one-shot went with it, and so did `redis` and `worker` before
+# that. If a database is ever proposed, it needs a decision record first — its absence is
+# why this deployment can be left alone for months.
 #
 # Usage:
 #   docker compose -f docker-compose.prod.yml up -d --build
-#   docker compose -f docker-compose.prod.yml --profile tools run --rm migrate
-# In practice you run infra/deploy.sh, which does all of this in the right order with a
-# backup and a rollback path.
+# In practice you run infra/deploy.sh, which does this in the right order with a health
+# gate and a rollback path.
 #
-# NO POSTGIS, DELIBERATELY. product-brief section 5 locks "PostgreSQL 16 + PostGIS" and
-# ADR 0022 reverses it after the architect looked at what the map actually queries: there is
-# no spatial predicate anywhere in this product and no `cached_features` table. (ADR 0022's
-# original wording said the live positions "live in Redis and expire"; since ADR 0031 they
-# live in the web container's own memory and expire there. The conclusion is unchanged --
-# they are not in Postgres, so Postgres needs no spatial type.) Switching to `postgis/postgis:16-3.5` later is a
-# one-line image change on the SAME data volume (same major version, same PGDATA layout) --
-# but note that the postgis image's own initdb hook runs `CREATE EXTENSION postgis` on FIRST
-# BOOT, which would take the decision out of the migration's hands. That is the second reason
-# this stays `postgres:16-bookworm`: ADR 0022 says the extension is created by a migration if
-# it is ever created at all, and an image that creates it for you cannot honour that.
-# See docs/deploy/RUNBOOK.md section 19 for the switch procedure in both directions.
-#
-# Interpolation vs container environment -- these are two different mechanisms and mixing
-# them up is the most common way this file breaks:
+# Interpolation vs container environment — two different mechanisms, and mixing them up is
+# the most common way this file breaks:
 #   * `${VAR}` below is substituted by the *compose CLI* from the shell and from the file
-#     literally named `.env` sitting next to this file. It is what makes `${DOMAIN}` work.
-#   * `env_file:` injects variables into the *container*. It does not affect `${...}`.
+#     literally named `.env` sitting next to this file.
+#   * `environment:` injects variables into the *container*.
 # Both read the same `.env`, which is why one file is enough. `${VAR:?message}` makes
-# compose refuse to start rather than silently substitute an empty string -- a missing
-# POSTGRES_PASSWORD would otherwise create a trust-auth database.
+# compose refuse to start rather than substitute an empty string.
+#
+# THE APPLICATION READS NO ENVIRONMENT VARIABLE AT ALL. `web` therefore has no `env_file:`
+# and no `environment:` beyond what the image already sets. The only configuration in this
+# whole deployment is Caddy's DOMAIN and ACME_EMAIL. Do not add an env_file to `web` "just
+# in case": a container that reads nothing is a container that cannot be misconfigured.
 
 name: ${COMPOSE_PROJECT_NAME:-app}
 
@@ -51,14 +36,10 @@ name: ${COMPOSE_PROJECT_NAME:-app}
 # ---------------------------------------------------------------------------------------
 
 # Log rotation. This is not a nicety. The default json-file driver is UNBOUNDED: one
-# crash-looping container writing a stack trace 20 times a second will fill a 40 GB VPS
-# disk in days, at which point Postgres refuses writes, Caddy cannot renew certificates,
-# and the site goes down in a way that looks like everything is broken at once.
-# 10 MB x 3 files x 4 services = 120 MB worst case. Applied to EVERY service.
-#
-# `caddy` is now the loudest at steady state: one structured access-log line per request,
-# including the map client's five-second per-layer polls. `web` is the loudest when something
-# is wrong. Both are bounded here and neither is bounded anywhere else.
+# crash-looping container writing a stack trace 20 times a second fills the disk in days,
+# at which point Caddy can no longer write its certificate store and the site goes down in
+# a way that looks like everything broke at once. 10 MB x 3 files x 2 services = 60 MB
+# worst case. Applied to EVERY service.
 x-logging: &default-logging
   driver: json-file
   options:
@@ -70,100 +51,6 @@ x-hardening: &default-hardening
     - no-new-privileges:true
 
 services:
-  # -------------------------------------------------------------------------------------
-  # db
-  # -------------------------------------------------------------------------------------
-  db:
-    image: postgres:16-bookworm
-    restart: unless-stopped
-    logging: *default-logging
-    <<: *default-hardening
-
-    # Deliberately no cap_drop here. The postgres entrypoint starts as root, fixes
-    # ownership of PGDATA and drops to the postgres user, which needs CHOWN/SETUID/SETGID/
-    # FOWNER/DAC_OVERRIDE. `cap_drop: [ALL]` on this image produces an initdb that fails
-    # with a confusing permissions error on first boot only. Not worth it.
-
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER must be set in .env}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set in .env}
-      POSTGRES_DB: ${POSTGRES_DB:?POSTGRES_DB must be set in .env}
-      # scram-sha-256 rather than the image default md5 for any host connection.
-      POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256 --auth-local=scram-sha-256"
-      TZ: ${TZ:-UTC}
-      PGTZ: ${TZ:-UTC}
-
-    # Retuned for a 2 GB container ceiling on an 8 GB box (v1 was 768 MB on a 2 GB box).
-    # Rationale for each value:
-    #   shared_buffers 512MB       ~25% of the container limit, the standard starting point.
-    #   effective_cache_size 1536MB planner hint only, no allocation. Assumes the page cache
-    #                              can hold roughly this much given the other containers.
-    #   work_mem 8MB               per sort/hash node, and a single query can use several.
-    #                              60 connections x a few nodes is the real ceiling; 8 MB
-    #                              keeps the worst case well inside the limit.
-    #   maintenance_work_mem 128MB used by VACUUM, CREATE INDEX and pg_restore.
-    #   max_connections 60         Raised to 60 when v2 added a second pool-holding
-    #                              container. ADR 0031 removed that container, so the real
-    #                              demand is one `web` pool (DATABASE_POOL_MAX, default 10)
-    #                              plus a profile-gated migration and a nightly pg_dump.
-    #                              60 is now generous rather than tight, and it is LEFT AT 60
-    #                              on purpose: lowering it buys back only a small per-slot
-    #                              reservation and would have to be raised again the moment
-    #                              anything else connects. Not the default 100, which is a
-    #                              memory reservation even this box should not make.
-    #   max_parallel_workers_per_gather 0
-    #                              parallel query multiplies work_mem and hammers /dev/shm
-    #                              for no benefit at this data size. Boring beats clever.
-    command:
-      - postgres
-      - -c
-      - shared_buffers=512MB
-      - -c
-      - effective_cache_size=1536MB
-      - -c
-      - work_mem=8MB
-      - -c
-      - maintenance_work_mem=128MB
-      - -c
-      - max_connections=60
-      - -c
-      - max_parallel_workers_per_gather=0
-      - -c
-      - random_page_cost=1.1
-      - -c
-      - log_min_duration_statement=1000
-      - -c
-      - log_connections=off
-
-    volumes:
-      - db_data:/var/lib/postgresql/data
-
-    # Postgres mounts /dev/shm for parallel workers and large hash joins. Docker's default
-    # is 64 MB, which produces "could not resize shared memory segment" under load. 512 MB
-    # is generous for this workload and is counted against mem_limit below.
-    shm_size: 512mb
-
-    mem_limit: 2g
-    mem_reservation: 512m
-    cpus: 2.0
-
-    # pg_isready, not a TCP probe: the port is open long before the cluster finishes
-    # initdb on first boot, and `web` waiting on a merely-open port would race the schema.
-    # start_period covers first-boot initdb, which takes ~10-20 s on a small VPS.
-    healthcheck:
-      test:
-        [
-          "CMD-SHELL",
-          "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\" -h 127.0.0.1",
-        ]
-      interval: 10s
-      timeout: 5s
-      retries: 6
-      start_period: 45s
-
-    networks:
-      - backend
-
   # -------------------------------------------------------------------------------------
   # web
   # -------------------------------------------------------------------------------------
@@ -180,61 +67,51 @@ services:
       - ALL
 
     # server.js is PID 1 without this, so it inherits no SIGTERM default and never reaps
-    # zombies. `init: true` inserts docker-init, giving clean `docker compose down`.
+    # zombies. `init: true` inserts docker-init, giving a clean `docker compose down`.
     init: true
 
-    # NOT `ports:`. Publishing 3000 here would bypass Caddy entirely -- the app would be
+    # NOT `ports:`. Publishing 3000 here would bypass Caddy entirely — the site would be
     # reachable over plain HTTP on the VPS's public IP with none of the security headers,
-    # and UFW would not save you because Docker writes its own iptables rules ahead of
+    # and UFW would not save you, because Docker writes its own iptables rules ahead of
     # UFW's chain. The only correct exposure is through caddy.
     expose:
       - "3000"
 
-    env_file:
-      - .env
-
-    depends_on:
-      db:
-        # service_healthy, not service_started. The app opens a pool and runs its first
-        # query within a second of boot; a merely-started Postgres will refuse it and the
-        # container restart-loops until the DB happens to win the race.
-        condition: service_healthy
-      # `db` is the ONLY dependency. There is no redis (ADR 0031): the source cache is the
-      # in-process map in `app/(public)/map/sources.ts`, which lives and dies with this
-      # container and needs nothing to be healthy first.
-
-    # Repeated from the Dockerfile so that `docker compose ps` reports health even if the
-    # image is ever rebuilt without the HEALTHCHECK line, and so the interval is tunable
-    # here without a rebuild.
+    # Repeated from the Dockerfile so `docker compose ps` reports health even if the image
+    # is ever rebuilt without the HEALTHCHECK line, and so the interval is tunable here
+    # without a rebuild. A 200 on `/` IS the health check: every route is prerendered, so
+    # the front page answering proves the server is serving. There is no /api/health.
     healthcheck:
       test:
         [
           "CMD",
           "node",
           "-e",
-          "fetch('http://127.0.0.1:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+          "fetch('http://127.0.0.1:3000/').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
         ]
       interval: 30s
       timeout: 5s
       retries: 3
-      start_period: 45s
+      start_period: 20s
 
-    # 2 GB. This container now holds the source payload cache in its own heap rather than in
-    # Redis, so its working set went UP when redis was removed -- by the few hundred KB of
-    # JSON per cached viewport measured in RUNBOOK section 21.2, which is noise against 2 GB.
-    # It is still the least predictable of the three and the first one to raise. NOT MEASURED
-    # on a real box: HANDOFF register 33.
-    mem_limit: 2g
-    mem_reservation: 512m
+    # 512 MB. This is a Node process reading prerendered HTML off disk: it holds the Next
+    # server, its route manifests and a small fetch cache, and nothing else. The old stack
+    # asked for 2 GB because it held a Postgres pool, a source cache and live map payloads;
+    # none of that exists. 512 MB is roughly 4x a measured `next start` baseline and leaves
+    # the box mostly empty, which is the point.
+    # NOT MEASURED on the real VPS — see docs/deploy/RUNBOOK.md, "What has not been
+    # verified". If `docker stats` ever shows this near the limit, something has changed
+    # that needs explaining, not a bigger number.
+    mem_limit: 512m
+    mem_reservation: 128m
     cpus: 2.0
 
     networks:
-      - backend # to reach db
-      # `edge` is both how caddy reaches this container and how this container reaches the
-      # internet: outbound SMTP, GitHub OAuth, and every connector call in lib/connectors/.
-      # `backend` is `internal: true` and has no gateway, so `edge` is the only default
-      # route candidate. That was true before the worker existed and is true again now.
-      - edge
+      # `site` ONLY, and `site` is internal. This container has no route to the internet
+      # and needs none: every page was rendered at build time, so nothing is fetched at run
+      # time. If it is ever compromised it cannot call out. The build is unaffected —
+      # `docker compose build` runs on the daemon's own network, not this one.
+      - site
 
   # -------------------------------------------------------------------------------------
   # caddy
@@ -253,31 +130,27 @@ services:
     ports:
       - "80:80" # ACME HTTP-01 challenge + the redirect to HTTPS
       - "443:443" # TLS
-      - "443:443/udp" # HTTP/3. Harmless if the client never uses it.
+      - "443:443/udp" # HTTP/3. Harmless if no client ever uses it.
 
     environment:
       # The Caddyfile reads these as {$DOMAIN} / {$ACME_EMAIL}. This is the whole reason
-      # the domain is not written into any file: re-pointing at a different hostname is an
-      # .env edit plus `docker compose up -d caddy`, not a code change.
+      # the domain is written in no file: re-pointing at a different hostname is an .env
+      # edit plus `docker compose up -d caddy`, not a code change.
       DOMAIN: ${DOMAIN:?DOMAIN must be set in .env}
       ACME_EMAIL: ${ACME_EMAIL:?ACME_EMAIL must be set in .env}
-      # Set to https://acme-staging-v02.api.letsencrypt.org/directory while testing.
-      # Let's Encrypt production allows 5 failures per account/hostname per hour; the
-      # staging endpoint has no meaningful limit and issues untrusted certs.
+      # Set to https://acme-staging-v02.api.letsencrypt.org/directory while testing DNS or
+      # firewall changes. Let's Encrypt production allows 5 failed authorisations per
+      # hostname per hour; burning that during a misconfiguration locks issuance for the
+      # rest of the hour. Staging certificates are untrusted by browsers, which is how you
+      # know you are on staging.
       ACME_CA: ${ACME_CA:-https://acme-v02.api.letsencrypt.org/directory}
       TZ: ${TZ:-UTC}
 
     volumes:
       - ./infra/Caddyfile:/etc/caddy/Caddyfile:ro
-      # csp.caddy is `import`ed by the Caddyfile and MUST be mounted alongside it. Caddy
-      # resolves `import` relative to the config file's own directory, so without this line
-      # Caddy fails to load its configuration at all and the container never serves a byte.
-      # This was missing in v1 and is a start-blocking defect, not a v2 addition -- the whole
-      # site would have been down on the first deploy. Recorded in HANDOFF section 16.
-      - ./infra/csp.caddy:/etc/caddy/csp.caddy:ro
       # /data holds the issued certificates AND the ACME account key. If this is not a
-      # named volume, every redeploy re-requests certificates, and five of those in an
-      # hour gets the hostname rate-limited by Let's Encrypt for a week.
+      # named volume, every redeploy re-requests certificates, and five of those in an hour
+      # gets the hostname rate-limited for a week.
       - caddy_data:/data
       # /config holds the autosaved JSON config. Losing it is survivable but noisy.
       - caddy_config:/config
@@ -288,75 +161,42 @@ services:
       # instead of a connection refused with no certificate.
       - web
 
-    # 256 MB, raised from v1's 128 MB when SSE was expected to hold a goroutine and a
-    # connection per reader's tab. ADR 0031 removed the stream, so every connection here is
-    # again short-lived -- the map client's five-second poll is an ordinary request that
-    # completes in tens of milliseconds. LEFT AT 256 MB anyway: it is 3% of an 8 GB box, and
-    # a proxy that gets OOM-killed takes the certificates offline with it. This is the one
-    # limit where the cheap direction is up.
+    # 256 MB. Generous for a proxy in front of a static site, and left generous on purpose:
+    # it is 3% of an 8 GB box, and a proxy that gets OOM-killed takes the certificates
+    # offline with it. This is the one limit where the cheap direction is up.
     mem_limit: 256m
     mem_reservation: 64m
-    cpus: 0.5
+    cpus: 1.0
 
     networks:
-      - edge
-
-  # -------------------------------------------------------------------------------------
-  # migrate -- one-shot
-  # -------------------------------------------------------------------------------------
-  # Behind a profile so `docker compose up -d` can never start it. Invoke explicitly:
-  #   docker compose -f docker-compose.prod.yml --profile tools run --rm migrate
-  #   docker compose -f docker-compose.prod.yml --profile tools run --rm migrate pnpm db:seed
-  migrate:
-    profiles: ["tools"]
-    build:
-      context: .
-      dockerfile: Dockerfile
-      target: migrator
-    image: ${IMAGE_NAME:-app-web}-migrate:${IMAGE_TAG:-current}
-    restart: "no"
-    logging: *default-logging
-    <<: *default-hardening
-    init: true
-    env_file:
-      - .env
-    depends_on:
-      db:
-        condition: service_healthy
-    mem_limit: 512m
-    networks:
-      - backend
+      - edge # the internet, in and out (published ports + ACME)
+      - site # to reach web:3000
 
 volumes:
-  db_data:
-    # Named, not bind-mounted: bind mounts to a host path inherit host uid/gid semantics
-    # and are the usual cause of "data directory has wrong ownership" on first boot.
-    # Backups come from pg_dump (infra/backup.sh), never from copying this directory.
+  # Certificates and the ACME account key. THE ONLY STATE ON THIS BOX. Losing it costs a
+  # re-issuance, not data — but re-issuing five times in an hour is rate-limited, so it is
+  # a named volume and `docker compose down -v` is never the right command here.
   caddy_data:
   caddy_config:
 
 # ---------------------------------------------------------------------------------------
-# Networks -- two, and each one has a single reason
+# Networks — two, and each has exactly one reason
 # ---------------------------------------------------------------------------------------
-# The rule that produces this shape: `backend` has no gateway, so a container attached to
-# `backend` AND one other network takes its default route from the other one. That is what
-# gives `web` internet access while `db` has none. It is deterministic rather than lucky --
-# `internal: true` means Docker creates no gateway on that bridge, so there is only ever one
-# candidate default route.
+# `site` is `internal: true`, which means Docker creates no gateway on that bridge: a
+# container attached only to it has no route to the internet and none from it. `web` is on
+# `site` alone, so the application container cannot make an outbound connection even if
+# something in it tried to. That is a property of the topology, not a promise about the
+# code.
 #
-# THERE WAS A THIRD, `egress`, and it is gone with the worker that was its only member
-# (ADR 0031). It existed so a poller could reach the internet without sitting on the network
-# the public internet reaches. If the worker ever returns, so does `egress`, and its argument
-# is preserved in ADR 0031 rather than left as an empty bridge here.
+# `caddy` is on both. It takes its default route from `edge`, which is where the published
+# ports and the ACME traffic live, and reaches `web` over `site`.
+#
+# The old `backend` network is gone: it existed to keep Postgres off the internet, and
+# there is no Postgres.
 networks:
-  # Reached by the internet, through caddy's published ports only, AND the route `web` takes
-  # outbound: SMTP, GitHub OAuth, and every connector call.
   edge:
     driver: bridge
 
-  # No gateway, therefore no route to the internet and no route from it. Postgres cannot
-  # phone home and cannot be reached from outside even if a port were published by mistake.
-  # `web` is on this and on `edge`, so it still has egress; `db` is on this alone.
-  backend:
+  site:
     driver: bridge
     internal: true
