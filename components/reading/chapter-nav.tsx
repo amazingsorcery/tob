@@ -2,7 +2,7 @@ import Link from "next/link";
 
 import type { Chapter, Work } from "@/lib/works";
 
-import { chapterLabel, duration } from "./work-meta";
+import { chapterLabel } from "./work-meta";
 
 /**
  * Previous and next, at the foot of a chapter.
@@ -63,7 +63,6 @@ function NavLink({
         {label ? `${label}. ${chapter.title}` : chapter.title}
       </span>
       <span className="tabular mt-1 block text-sm text-foreground-secondary">
-        {duration(chapter.minutes)}
       </span>
     </Link>
   );

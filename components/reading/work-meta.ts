@@ -6,24 +6,6 @@ import type { Chapter, Work } from "@/lib/works";
  * belongs in `lib/works.ts`, where it is parsed once and tested against the real files.
  */
 
-/** "35,847". Locale pinned so the build and the browser cannot disagree about the separator. */
-export function count(value: number): string {
-  return new Intl.NumberFormat("en-GB").format(value);
-}
-
-/**
- * "47 min" · "2 hr 59 min".
- *
- * The longest work is 179 minutes, and "179 min" asks the reader to do the division. Hours
- * appear only above sixty minutes, so a chapter still reads as a chapter.
- */
-export function duration(minutes: number): string {
-  if (minutes < 60) return `${minutes} min`;
-  const hours = Math.floor(minutes / 60);
-  const rest = minutes % 60;
-  return rest === 0 ? `${hours} hr` : `${hours} hr ${rest} min`;
-}
-
 /**
  * "Chapter 3", or null.
  *
@@ -51,18 +33,6 @@ export function neighbours(
 }
 
 /**
- * The first paragraph of a Markdown block.
- *
- * Used for the lead on the home page. The abstracts are four or five paragraphs and the first
- * one states the claim; taking it whole is what keeps the front page in the author's words
- * instead of a summary somebody invented.
- */
-export function firstParagraph(markdown: string): string {
-  const paragraph = markdown.trim().split(/\n\s*\n/)[0] ?? "";
-  return paragraph.trim();
-}
-
-/**
  * Markdown reduced to a plain sentence run, for a `<meta name="description">`.
  *
  * Maths is REMOVED rather than unwrapped: a search result reading "A Kakeya set in the affine
@@ -83,28 +53,3 @@ export function plainSummary(markdown: string, maxLength = 200): string {
   return `${(lastSpace > 0 ? cut.slice(0, lastSpace) : cut).replace(/[,;:.]$/, "")}…`;
 }
 
-/**
- * How many of a work's parts are chapters.
- *
- * `work.chapters` is every top-level part, which includes the appendix and the bibliography —
- * so the philosophy dissertation's nine parts are eight chapters and a bibliography, and
- * calling that "9 chapters" on the front page would be wrong by one in every work. The table
- * of contents lists all of them; this counts only what the author called a chapter.
- */
-export function chapterCount(work: Work): number {
-  const numbered = work.chapters.filter((c) => /^Chapter\s+\d+/.test(c.heading)).length;
-  return numbered > 0 ? numbered : work.chapters.length;
-}
-
-/**
- * "8 chapters · 35,847 words · 2 hr 59 min".
- *
- * One string rather than three, because the three numbers only mean something together: a
- * word count without a reading time asks the reader to estimate, and a reading time without a
- * word count hides how the estimate was made.
- */
-export function workLength(work: Work): string {
-  const chapters = chapterCount(work);
-  const noun = chapters === 1 ? "chapter" : "chapters";
-  return `${chapters} ${noun} · ${count(work.words)} words · ${duration(work.minutes)}`;
-}
