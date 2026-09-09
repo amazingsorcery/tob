@@ -10,7 +10,7 @@
 
 A Kakeya set in the affine plane $AG(2,q)$ over the field with $q$ elements is a set containing a line in every direction. Its minimum size was determined by Blokhuis and Mazzocca in 2008, after Dvir's polynomial-method bound of 2008 had settled the order of magnitude in every dimension. This dissertation studies the natural generalisation in which $r$ distinct lines are required in every direction: an *$r$-fold Kakeya set*. Let $\kappa_r(q)$ be the least size of such a set.
 
-The polynomial method, applied to $r$-fold sets, returns exactly what it returns for $r=1$: no polynomial of degree less than $q$ vanishes on the set, hence $\kappa_r(q)\ge\binom{q+1}{2}$, and this is proved here to be the end of what the restriction-to-lines argument can give. An elementary count does better. Writing $m_P$ for the number of chosen lines through a point $P$, the union $U$ of the lines satisfies the exact identity
+The polynomial method, applied to $r$-fold sets, returns exactly what it returns for $r=1$: no polynomial of degree less than $q$ vanishes on the set, hence $\kappa_r(q)\ge\binom{q+1}{2}$, and in every case computed here that is all the restriction-to-lines argument can give. An elementary count does better. Writing $m_P$ for the number of chosen lines through a point $P$, the union $U$ of the lines satisfies the exact identity
 $$|U|=\frac{r}{r+1}\,q(q+1)+\frac{1}{(r+1)^2}\sum_{P\in U}(m_P-r-1)^2,$$
 so that $\kappa_r(q)\ge\frac{r}{r+1}q(q+1)$, with equality if and only if every point of the union lies on exactly $r+1$ of the lines. Under the standard point–line duality of the projective plane this equality case is precisely a *maximal arc* of degree $r+1$, and two classical theorems then decide the matter: Denniston's construction (1969) shows that the bound is attained for every even $q$ and every $r+1$ dividing $q$, and the theorem of Ball, Blokhuis, and Mazzocca (1997), itself a polynomial-method result, shows that for odd $q$ it is never attained when $2\le r+1\le q-1$. Thus the polynomial method, shut out at the front door, returns through the back.
 
@@ -65,7 +65,7 @@ $$\kappa_{q-s}(q)=q^2-s,$$
 | $t_0(q)$ | 4 | 4 | 4 | 5 | 5 | 5 | 6 | 6 | 7 |
 | $D(q)$ | 4 | 4 | 4 | 5 | 5 | 6 | 6 | 6 | 7 |
 
-**Theorem D (The polynomial method).** *No nonzero polynomial of degree less than $q$ vanishes on an $r$-fold Kakeya set, for any $r\ge1$; hence $\kappa_r(q)\ge\binom{q+1}2$. This is the whole content of the restriction-to-lines argument: the reduced polynomials of degree $q$ that vanish on a $1$-fold union exist, and for the minimal $r$-fold configurations computed in Chapter 7 the least degree of a vanishing reduced polynomial equals the trivial counting threshold, so no improvement on $\binom{q+1}2$ can come from the argument without a new ingredient.*
+**Theorem D (The polynomial method).** *No nonzero polynomial of degree less than $q$ vanishes on an $r$-fold Kakeya set, for any $r\ge1$; hence $\kappa_r(q)\ge\binom{q+1}2$. The argument sees one line per direction, and in the cases computed in Chapter 7 ($q=5$, $r=2$; $q=7$, $1\le r\le4$) it has nothing more to give: reduced polynomials of degree $q$ vanishing on a $1$-fold union exist, and the least degree of a nonzero reduced polynomial vanishing on a minimal $r$-fold union equals the trivial counting threshold, so any improvement on $\binom{q+1}2$ needs an ingredient the argument does not contain.*
 
 **Theorem E (Constructions).** *(i) For $1\le s\le q$, the lines avoiding $s$ collinear points form a $(q-s)$-fold Kakeya set of size $q^2-s$. (ii) For $q$ even and $n\mid q$, the dual of a Denniston arc of degree $n$ is an $(n-1)$-fold configuration attaining Theorem A, and for every divisor $n'$ of $n$ it contains an $(n'-1)$-fold sub-configuration attaining Theorem A. (iii) For $q$ odd and $r$ even, the union of $r/2$ conics of square parameter and $r/2$ conics of non-square parameter in the pencil $x^2-\beta y^2=\lambda$ ($\beta$ a non-square) dualises to an $r$-fold configuration.*
 
@@ -84,7 +84,7 @@ The lower bound of Theorem A is attained exactly at the entries $(3,2)$, $(4,1)$
 
 ## 1.3 Provenance
 
-I have tried to be exact about what is new. The definition of $r$-fold Kakeya sets, the variance identity of Theorem A, the equality characterisation and its consequences in Theorem B, the reduction of the problem near $r=q$ to the direction-determination number $D(q)$ in Theorem C, the observation in Theorem D that the polynomial method is stuck at $r=1$, the constructions (ii) and (iii) of Theorem E as $r$-fold Kakeya sets, and all the computations are, to the best of my knowledge, new. A literature search (September 2026) found no treatment of Kakeya sets with a multiplicity requirement and no mention of the duality with maximal arcs in that context. On the other side of the duality everything is classical: maximal arcs go back to Barlotti (1955) and Cossu (1961), Denniston's construction is from 1969, the divisibility condition is folklore, and the non-existence theorem for odd $q$ is due to Ball, Blokhuis, and Mazzocca (1997), with a shorter proof by Ball and Blokhuis (1998). A specialist in finite geometry will recognise Theorem B as a translation; I claim only that the translation is worth making, because it exhibits an extremal problem of Kakeya type whose answer, in the equality case, is decided by a theorem proved with polynomials after the direct polynomial approach has failed. The quantity $D(q)$ of Theorem C, the smallest set determining all directions, is a natural cousin of the well-studied problem of the *fewest* directions determined by a set of $q$ points (Rédei 1970; Szőnyi 1996; Ball, Blokhuis, Brouwer, Storme, and Szőnyi 1999); I have not found it in the literature and treat it as new, with the same caveat.
+I have tried to be exact about what is new. The definition of $r$-fold Kakeya sets, the variance identity of Theorem A, the equality characterisation and its consequences in Theorem B, the reduction of the problem near $r=q$ to the direction-determination number $D(q)$ in Theorem C, the observation in Theorem D that the polynomial method is stuck at $r=1$, the constructions (ii) and (iii) of Theorem E as $r$-fold Kakeya sets, and all the computations are, to the best of my knowledge, new. A literature search found no treatment of Kakeya sets with a multiplicity requirement and no mention of the duality with maximal arcs in that context. On the other side of the duality everything is classical: maximal arcs go back to Barlotti (1955) and Cossu (1961), Denniston's construction is from 1969, the divisibility condition is folklore, and the non-existence theorem for odd $q$ is due to Ball, Blokhuis, and Mazzocca (1997), with a shorter proof by Ball and Blokhuis (1998). A specialist in finite geometry will recognise Theorem B as a translation; I claim only that the translation is worth making, because it exhibits an extremal problem of Kakeya type whose answer, in the equality case, is decided by a theorem proved with polynomials after the direct polynomial approach has failed. The quantity $D(q)$ of Theorem C, the smallest set determining all directions, is a natural cousin of the well-studied problem of the *fewest* directions determined by a set of $q$ points (Rédei 1970; Szőnyi 1996; Ball, Blokhuis, Brouwer, Storme, and Szőnyi 1999); I have not found it in the literature and treat it as new, with the same caveat.
 
 The dissertation is a companion to the author's *Three Lemmas*, which develops the polynomial method in combinatorics and includes, in its Chapter 7, the case of *punctured* Kakeya sets (all but one point of a line in every direction). The present work uses the Dvir argument from there and nothing else from it.
 
@@ -152,6 +152,8 @@ So $K$ is a maximal arc of degree $n$. ∎
 
 **Remark 2.5.** The proof shows more: for $n'\mid n$ one may take a subgroup $A'\le A$ of order $n'$, and then $K'=\{Q\in A'\}\subseteq K$ is a maximal arc of degree $n'$ contained in $K$. In particular every Denniston arc of degree $n\ge2$ contains a hyperoval $\{(0,0)\}\cup C_\lambda$ through the origin. This nesting is used in §7.2.
 
+Denniston's are not the only maximal arcs in planes of even order: Thas (1974) and Mathon (2002) gave further constructions, and Hamilton and Mathon (2004) used Mathon's method to produce maximal arcs not of Denniston type for every degree $n\mid q$ with $4<n<q/2$. Only Denniston arcs are used here.
+
 For $q$ odd the situation is the opposite.
 
 **Theorem 2.6 (Ball, Blokhuis, and Mazzocca 1997).** *If $q$ is odd, $PG(2,q)$ contains no maximal arc of degree $n$ with $1<n<q$.*
@@ -162,7 +164,7 @@ The proof, and the shorter one of Ball and Blokhuis (1998), associates to a puta
 
 A *Kakeya set* in $AG(2,q)$ is a set containing a line in every direction; it is what I call a $1$-fold Kakeya set. Dvir (2009) proved that a Kakeya set in $\mathbb F_q^n$ has at least $\binom{q+n-1}{n}$ points, so at least $\binom{q+1}2$ in the plane. The exact value is due to Blokhuis and Mazzocca (2008):
 $$\kappa_1(q)=\begin{cases}\dfrac{q(q+1)}2+\dfrac{q-1}2&q\text{ odd},\\[6pt]\dfrac{q(q+1)}2&q\text{ even},\end{cases}$$
-the even case being attained exactly by the duals of hyperovals through $O$ and the odd case by a construction from a conic, which Blokhuis and Mazzocca also showed to be the only one. The even case is the first instance of Theorem B: a hyperoval is a maximal arc of degree $2=r+1$.
+the even case being attained exactly by the duals of hyperovals through $O$ and the odd case by a construction from a conic, which Blokhuis and Mazzocca also showed to be the only one (they state the classification for a dual oval, which for odd $q$ is a dual conic by Segre's theorem (1955)). The even case is the first instance of Theorem B: a hyperoval is a maximal arc of degree $2=r+1$. Blokhuis, De Boeck, Mazzocca, and Storme (2014) study the spectrum of sizes above the minimum and classify the smallest examples; Dover, Mellinger, and Scott (2014) consider Kakeya sets minimal under inclusion, which need not have minimum size.
 
 The quantity $\kappa_r(q)$ is a minimum over configurations: every $r$-fold Kakeya set contains an $r$-fold configuration's union, and every such union is an $r$-fold Kakeya set. So
 $$\kappa_r(q)=\min\{|U(\mathcal L)|:\mathcal L\text{ an }r\text{-fold configuration}\},$$
@@ -170,7 +172,7 @@ and I work with configurations throughout.
 
 ## 2.5 The polynomial method
 
-The polynomial method proves lower bounds on $|U|$ by finding a nonzero polynomial of low degree vanishing on $U$ (by linear algebra, if $|U|$ is small) and showing that the structure of $U$ forces the degree to be large. Dvir's argument for Kakeya sets is the model, and I state the form of it that will be needed. Say that a polynomial in $\mathbb F_q[x,y]$ is *reduced* if every exponent is at most $q-1$; every function $\mathbb F_q^2\to\mathbb F_q$ is represented by exactly one reduced polynomial, and the reduced polynomials of degree at most $d$ form a space of dimension
+The polynomial method proves lower bounds on $|U|$ by finding a nonzero polynomial of low degree vanishing on $U$ (by linear algebra, if $|U|$ is small) and showing that the structure of $U$ forces the degree to be large. Dvir's argument for Kakeya sets is the model (Guth 2016 is the general reference for the method; the companion dissertation develops it from three lemmas), and I state the form of it that will be needed. Say that a polynomial in $\mathbb F_q[x,y]$ is *reduced* if every exponent is at most $q-1$; every function $\mathbb F_q^2\to\mathbb F_q$ is represented by exactly one reduced polynomial, and the reduced polynomials of degree at most $d$ form a space of dimension
 $$m_d=\#\{(i,j):0\le i,j\le q-1,\ i+j\le d\}.$$
 
 **Proposition 2.7 (Dvir's argument for $r$-fold sets).** *Let $K$ be an $r$-fold Kakeya set in $AG(2,q)$, $r\ge1$. No nonzero polynomial of degree at most $q-1$ vanishes on $K$. Hence $|K|\ge\binom{q+1}2$.*
@@ -212,7 +214,7 @@ Part (b) says that on every line of the configuration the multiplicities are bal
 
 ## 3.3 Integrality
 
-Since $|U|$ is an integer, $\kappa_r(q)\ge\lceil\frac r{r+1}q(q+1)\rceil$, and when $(r+1)\nmid q(q+1)$ the bound of Theorem A cannot be attained for arithmetic reasons alone. This is weaker than Theorem B, which excludes attainment for every odd $q$, but it explains some of the small values: for $q=4$, $r=2$ the bound is $13\frac13$ and $\kappa_2(4)=14$; for $q=5$, $r=3$ the bound is $22\frac12$ and $\kappa_3(5)=23$; for $q=7$, $r=4$ the bound is $44\frac45$ and $\kappa_4(7)=46$. In the first two cases the ceiling is attained; in the third it is not. A configuration with $|U|=\lceil\frac r{r+1}q(q+1)\rceil$ has $\sum d_P^2=(r+1)^2\big(\lceil\cdot\rceil-\frac r{r+1}q(q+1)\big)<(r+1)^2$, so its multiplicities are tightly concentrated about $r+1$: in the three examples just cited every $m_P$ lies in $\{r,r+1,r+2\}$ (Table 7.2). These near-extremal configurations are the objects one would like to understand in the odd case (Chapter 6).
+Since $|U|$ is an integer, $\kappa_r(q)\ge\lceil\frac r{r+1}q(q+1)\rceil$, and when $(r+1)\nmid q(q+1)$ the bound of Theorem A cannot be attained for arithmetic reasons alone. This is weaker than Theorem B, which excludes attainment for every odd $q$, but it explains some of the small values: for $q=4$, $r=2$ the bound is $13\frac13$ and $\kappa_2(4)=14$; for $q=5$, $r=3$ the bound is $22\frac12$ and $\kappa_3(5)=23$; for $q=7$, $r=4$ the bound is $44\frac45$ and $\kappa_4(7)=46$. In the first two cases the ceiling is attained; in the third it is not. A configuration with $|U|=\lceil\frac r{r+1}q(q+1)\rceil$ has $\sum d_P^2=(r+1)^2\big(\lceil\cdot\rceil-\frac r{r+1}q(q+1)\big)<(r+1)^2$, so its multiplicities are tightly concentrated about $r+1$: in the first two examples every $m_P$ lies in $\{r,r+1,r+2\}$, while in the third, where the ceiling is not attained, three points have multiplicity $r-1$ (§6.4). These near-extremal configurations are the objects one would like to understand in the odd case (Chapter 6).
 # Chapter 4. Equality and Maximal Arcs
 
 ## 4.1 The dictionary
@@ -243,7 +245,7 @@ Thus the equality cases of the counting bound are completely known, and the list
 
 **Pencil complements ($r=q-1$).** The affine plane $AG(2,q)$ is a maximal arc of degree $q$; choosing $O$ to be an affine point and dualising, one obtains all lines not through a fixed point $\delta(O)$, i.e. $q-1$ lines per direction, with union the plane minus that point: $|U|=q^2-1=\frac{q-1}q q(q+1)$. The same configuration is described directly in §7.1.
 
-**Dual Denniston arcs.** For $q=2^h$ and $n\mid q$, the arc $K$ of Theorem 2.4 contains the origin, and dualising with $O$ the origin gives an $(n-1)$-fold configuration with $|U|=\frac{n-1}nq(q+1)$ and all multiplicities $n$. For $q=8$, $n=4$: $27$ lines, three per direction, union of $54$ points, every one on exactly four lines. This configuration was constructed explicitly (Appendix A.2) and its multiplicities verified; Figure 1 in the front matter shows the $q=7$, $r=2$ extremal configuration for comparison, where no such regularity is possible.
+**Dual Denniston arcs.** For $q=2^h$ and $n\mid q$, the arc $K$ of Theorem 2.4 contains the origin, and dualising with $O$ the origin gives an $(n-1)$-fold configuration with $|U|=\frac{n-1}nq(q+1)$ and all multiplicities $n$. For $q=8$, $n=4$: $27$ lines, three per direction, union of $54$ points, every one on exactly four lines. This configuration was constructed explicitly (Appendix A.2) and its multiplicities verified. In odd order no such regularity is possible (Corollary 4.3); for comparison, the extremal $q=7$, $r=2$ configuration has points of multiplicity $1$, $2$, $3$, and $4$ (§6.4).
 
 **Sub-configurations.** By Remark 2.5, a Denniston arc of degree $n$ contains Denniston arcs of every degree $n'\mid n$ through the origin, so the dual $(n-1)$-fold configuration contains $(n'-1)$-fold sub-configurations attaining their own bounds. A $3$-fold configuration in $AG(2,8)$ of the dual Denniston kind thus contains a dual hyperoval of $36$ points inside its $54$. Choosing $r$ lines per direction from the dual arc with $r+1\nmid n$ gives upper bounds for $\kappa_r(q)$ that turn out to be sharp in the one case that could be checked (§7.2).
 
@@ -251,7 +253,7 @@ Thus the equality cases of the counting bound are completely known, and the list
 
 First, the duality is *not* an isomorphism of extremal problems in general: the dual of an $r$-fold configuration has the specific form "$r$ points on each line of the pencil at $O$", and the quantity minimised is the number of lines meeting it, which is not a standard quantity for point sets. It becomes standard exactly in the equality case, where "no line meets $S\cup\{O\}$ in a number of points other than $0$ or $r+1$" is the definition of a maximal arc. This is why the equality case is fully understood while the near-equality cases are not: the theory of maximal arcs is rigid, and its stability version (how close to a maximal arc can a set be when no maximal arc exists?) is not part of it.
 
-Second, the correspondence gives an interpretation of $\kappa_r(q)$ in the dual plane: $q^2-\kappa_r(q)$ is the largest number of lines not through $O$ that can be *skew* to a set with $r$ points on each line through $O$. For $r=1$ and $q$ odd, Blokhuis and Mazzocca's theorem says this is $(q-1)^2/2$, attained by the tangents of a conic; it is the number of external lines of a conic not through a point on it, which is how the extremal Kakeya configuration arises. For $r\ge2$ the maximisers are unknown beyond the computed cases.
+Second, the correspondence gives an interpretation of $\kappa_r(q)$ in the dual plane: $q^2-\kappa_r(q)$ is the largest number of lines not through $O$ that can be *skew* to a set with $r$ points on each line through $O$. For $r=1$ and $q$ odd, Blokhuis and Mazzocca's theorem says this is $(q-1)^2/2$, attained when the chosen lines are $q$ tangents of a conic together with one further line. In the dual plane $S$ then consists of $q$ points of a conic through $O$ together with a point $A\ne O$ on the tangent at $O$, and the skew lines are the $q(q-1)/2$ external lines of the conic other than the $(q-1)/2$ of them through $A$, which is how $(q-1)^2/2$ arises. For $r\ge2$ the maximisers are unknown beyond the computed cases.
 # Chapter 5. Near the Top: Many Lines per Direction
 
 When $r$ is close to $q$ it is convenient to think of the $q-r$ lines per direction that are *omitted* rather than the $r$ that are chosen. Write $s=q-r$.
@@ -363,7 +365,7 @@ The opposite regime, $r$ fixed and $q\to\infty$ through odd values, is where the
 
 (For $q=9$, $r=2$ the search of Appendix A.1 did not finish; it found a configuration of $65$ points, and Theorem 6.1 gives $61$ as the lower bound. The $r=3,4$ entries are lower bounds from Theorem 6.1.)
 
-In terms of the deviations $d_P=m_P-r-1$ of Chapter 3, $\Delta_r(q)=\frac1{(r+1)^2}\sum_Pd_P^2$, so a linear lower bound $\Delta_r(q)\ge c_rq$ would say that a set with $r$ points on each line of a pencil, in a plane of odd order, is forced to have at least $c_r(r+1)^2q$ units of "squared irregularity" among its other secants. For $r=1$ that is the statement, essentially due to Bichara and Korchmáros (1982) and used by Blokhuis and Mazzocca, that a $(q+2)$-set has at least $\frac{q-1}2$ trisecants, or a quadratic-weighted version of it. For $r\ge2$ nothing of the kind seems to be known, and I state the question as the principal open problem of the dissertation.
+In terms of the deviations $d_P=m_P-r-1$ of Chapter 3, $\Delta_r(q)=\frac1{(r+1)^2}\sum_Pd_P^2$, so a linear lower bound $\Delta_r(q)\ge c_rq$ would say that a set with $r$ points on each line of a pencil, in a plane of odd order, is forced to have at least $c_r(r+1)^2q$ units of "squared irregularity" among its other secants. For $r=1$ that is the Blokhuis–Mazzocca bound in its dual form: a $(q+2)$-set with an internal nucleus (a point of the set through which every line meets it in exactly one further point) in a plane of odd order meets at least $\binom{q+2}2+\frac{q-1}2$ lines (Blokhuis and Mazzocca 2008, Proposition 8), i.e. $\Delta_1(q)\ge\frac{q-1}2$. Their proof uses Segre's lemma of tangents, with which Bichara and Korchmáros (1982) had shown that such a set has at most two internal nuclei, together with the Jamison–Brouwer–Schrijver bound on affine blocking sets. For $r\ge2$ nothing of the kind seems to be known, and I state the question as the principal open problem of the dissertation.
 
 **Question 6.3.** *For fixed $r\ge2$, does $\Delta_r(q)\to\infty$ as $q\to\infty$ through odd prime powers? Is $\Delta_r(q)\ge c_rq$ for some $c_r>0$?*
 
@@ -399,7 +401,7 @@ For $s=1$ this is the pencil complement of §4.3, the lines avoiding one point, 
 
 *Proof.* Theorem 4.2 and Remark 2.5. ∎
 
-The construction was carried out explicitly (Appendix A.2). For $q=8$ and $n=4$ one may take $\beta=1$ (since $\operatorname{Tr}(1)=1$ in $\mathbb F_8$) and $A=\{0,1,x,x+1\}$ in $\mathbb F_8=\mathbb F_2[x]/(x^3+x+1)$. The arc has $28$ points; its $63$ affine secants each carry $4$ points and its other $9$ affine lines none. The dual configuration has $27$ lines, $3$ per direction, union of $54$ points, every one of multiplicity $4$. For $q=16$, $n=4$, with $\beta$ of trace $1$ and $A$ the span of $1$ and $x$: $52$ points, dual union $204$, all multiplicities $4$. Both are shown in Figure 1 (front matter) alongside an odd-order extremal configuration for contrast.
+The construction was carried out explicitly (Appendix A.2). For $q=8$ and $n=4$ one may take $\beta=1$ (since $\operatorname{Tr}(1)=1$ in $\mathbb F_8$) and $A=\{0,1,x,x+1\}$ in $\mathbb F_8=\mathbb F_2[x]/(x^3+x+1)$. The arc has $28$ points; its $63$ affine secants each carry $4$ points and its other $9$ affine lines none. The dual configuration has $27$ lines, $3$ per direction, union of $54$ points, every one of multiplicity $4$. For $q=16$, $n=4$, with $\beta$ of trace $1$ and $A$ the span of $1$ and $x$: $52$ points, dual union $204$, all multiplicities $4$.
 
 Choosing $r<n-1$ lines per direction *inside* the dual arc gives an $r$-fold configuration whose union is a subset of the arc's union, and one may minimise over the $\binom{n-1}r^{q+1}$ choices. For $q=8$, $n=4$, $r=2$ the minimum over the $3^9$ choices is $51$, with spectrum $\{2{:}18,\ 3{:}24,\ 4{:}9\}$; the exhaustive search over *all* $2$-fold configurations of $AG(2,8)$ (Appendix A.1) also gives $51$, with a different spectrum $\{1{:}2,\ 2{:}12,\ 3{:}30,\ 4{:}7\}$. So $\kappa_2(8)=51$, and the dual Denniston arc contains an optimal $2$-fold sub-configuration. For $q=16$, $n=4$, $r=2$ the minimum over $3^{17}$ choices is $194$, against the bound $181\frac13$; whether $\kappa_2(16)=194$ is open.
 
@@ -419,7 +421,7 @@ Choosing $r<n-1$ lines per direction *inside* the dual arc gives an $r$-fold con
 
 (c) By (b), each line through $O$ meets every conic of one of the two classes in $2$ points and no conic of the other class; with $r/2$ conics in each class it meets $S$ in $2\cdot\frac r2=r$ points. The conics are disjoint by (a) and $O\notin S$. ∎
 
-**Remark 7.4.** A line $y=ax+c$ with $c\ne0$ meets $C_\lambda$ iff the quadratic $(1-\beta a^2)x^2-2\beta acx-\beta c^2-\lambda$ has a root, i.e. iff its discriminant $4\big(\beta c^2+\lambda(1-\beta a^2)\big)$ is a square or zero. Writing $u=\beta c^2$ and $v=1-\beta a^2$, the line is skew to all of $S$ iff $u+\lambda v$ is a non-square for every $\lambda\in\Lambda$. For $r$ "random-looking" values of $\lambda$ one expects about a $2^{-r}$ fraction of the $q^2-q$ lines not through $O$ to be skew, so $|U|\approx(1-2^{-r})q^2$. For $r=2$ this is $\frac34q^2$, above the bound $\frac23q^2$ by a constant factor: the construction is not asymptotically optimal. It is, however, exactly optimal at $q=7$.
+**Remark 7.4.** A line $y=ax+c$ with $c\ne0$ meets $C_\lambda$ iff the quadratic $(1-\beta a^2)x^2-2\beta acx-\beta c^2-\lambda$ has a root, i.e. iff its discriminant $4\big(\beta c^2+\lambda(1-\beta a^2)\big)$ is a square or zero. Writing $u=\beta c^2$ and $v=1-\beta a^2$, the line is skew to all of $S$ iff $u+\lambda v$ is a non-square for every $\lambda\in\Lambda$. For $r$ "random-looking" values of $\lambda$ one expects about a $2^{-r}$ fraction of the $q^2-q$ lines $y=ax+c$, $c\ne0$, to be skew, so $|U|\approx(1-2^{-r})q^2$. For $r=2$ this is $\frac34q^2$, above the bound $\frac23q^2$ by a constant factor: the construction is not asymptotically optimal. It is, however, exactly optimal at $q=7$.
 
 The minimum of $|U|$ over all admissible choices of $\Lambda$ was computed (Appendix A.3):
 
@@ -497,7 +499,7 @@ The following table collects everything known to me about $\kappa_r(q)$ for $q\l
 | 16 | 11–15 | $256-s$ | | C ($s\le5$) | |
 | 16 | 16 | 256 | 256 | A | |
 
-Every equality case of Theorem A in the table is one predicted by Corollary 4.3, and every case predicted by Corollary 4.3 with $q\le9$ or $q=16$ appears as an equality.
+Every equality case of Theorem A in the table is one predicted by Corollary 4.3, and every case predicted by Corollary 4.3 with $q\le9$ or $q=16$ appears as an equality (the trivial case $r=q$, where $U$ is the whole plane, is listed only for $q=16$).
 # Chapter 8. Conclusion
 
 The question was small: how few points can contain $r$ lines in every direction of a finite plane? The answer turned out to have three parts of quite different character.
@@ -613,15 +615,15 @@ Denniston, R. H. F. (1969). "Some Maximal Arcs in Finite Projective Planes." *Jo
 
 Dhar, M., Dvir, Z., and Lund, B. (2021). "Simple Proofs for Furstenberg Sets over Finite Fields." *Discrete Analysis* 2021:22.
 
-Dover, J. M., and Mellinger, K. E. (2014). "Minimal Kakeya Sets." *Journal of Combinatorial Designs* 22(3): 95–104.
+Dover, J. M., Mellinger, K. E., and Scott, K. E. (2014). "Minimal Kakeya Sets." *Journal of Combinatorial Designs* 22(2): 95–104.
 
 Dvir, Z. (2009). "On the Size of Kakeya Sets in Finite Fields." *Journal of the American Mathematical Society* 22(4): 1093–1097.
 
-Ellenberg, J. S., and Erman, D. (2016). "Furstenberg Sets and Furstenberg Schemes over Finite Fields." *Discrete Analysis* 2016:6.
+Ellenberg, J. S., and Erman, D. (2016). "Furstenberg Sets and Furstenberg Schemes over Finite Fields." *Algebra & Number Theory* 10(7): 1415–1436.
 
 Guth, L. (2016). *Polynomial Methods in Combinatorics*. University Lecture Series 64. Providence, RI: American Mathematical Society.
 
-Hamilton, N., and Mathon, R. (2004). "On the Spectrum of Non-Denniston Maximal Arcs of Degree 4 in $PG(2,2^h)$." *European Journal of Combinatorics* 25(3): 415–421.
+Hamilton, N., and Mathon, R. (2004). "On the Spectrum of Non-Denniston Maximal Arcs in $PG(2,2^h)$." *European Journal of Combinatorics* 25(3): 415–421.
 
 Hirschfeld, J. W. P. (1998). *Projective Geometries over Finite Fields*, 2nd edn. Oxford: Clarendon Press.
 
@@ -637,6 +639,6 @@ Szőnyi, T. (1996). "On the Number of Directions Determined by a Set of Points i
 
 Thas, J. A. (1974). "Construction of Maximal Arcs and Partial Geometries." *Geometriae Dedicata* 3: 61–64.
 
-Three Lemmas (2026). *The Polynomial Method in Combinatorics, from the Nullstellensatz to Cap Sets.* Companion dissertation by the same author; Chapter 7 treats punctured Kakeya sets.
+Three Lemmas. *The Polynomial Method in Combinatorics, from the Nullstellensatz to Cap Sets.* Companion dissertation by the same author; Chapter 7 treats punctured Kakeya sets.
 
 Wolff, T. (1999). "Recent Work Connected with the Kakeya Problem." In H. Rossi (ed.), *Prospects in Mathematics (Princeton, NJ, 1996)*. Providence, RI: American Mathematical Society, 129–162.
