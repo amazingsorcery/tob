@@ -48,12 +48,17 @@ caddy_config/
 # Agent scratch space. Never part of the build.
 .scratch/
 
-# Copied from node_modules by `prebuild` (scripts/copy-maplibre-assets.ts). Generated, not
-# authored — and it must be regenerated on every build so it cannot drift from the installed
-# maplibre version.
-public/maplibre/
+# Copied from node_modules by `pnpm dev` and `pnpm build` (scripts/copy-katex-assets.ts).
+# Generated, not authored — and it must be regenerated on every build so it cannot drift
+# from the installed katex version. See the header comment in that script for why the
+# stylesheet is a public asset rather than a CSS import.
+public/katex/
 
 # Throwaway verification scripts. Agents write these at the repo root and they should never
 # be committed or linted — one broke the lint gate for everyone else mid-build.
 tmp-*
 .tmp-*
+
+# The author's source folder. The works are copied into content/works/; the originals are
+# theirs and never part of the repository.
+MY STUFF/

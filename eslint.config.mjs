@@ -23,12 +23,20 @@ const config = [
       // directives that our config does not use, so linting them fails the gate on an
       // artefact nobody wrote. Gitignored, but ESLint does not read .gitignore by default.
       "coverage/**",
-      // Vendored MapLibre worker bundles, copied from node_modules by `prebuild`. Generated,
+      // KaTeX's stylesheet and fonts, copied from node_modules by `pnpm build`. Generated,
       // minified, and not ours to lint. ESLint does not read .gitignore, so it needs saying
       // here as well.
-      "public/maplibre/**",
+      "public/katex/**",
       // Throwaway verification scripts written at the repo root during a build.
       "tmp-*",
+      // Authored content, not application code. `content/works/code/punctured.js` is a
+      // program listing that belongs to a dissertation: it is the author's, it is quoted in
+      // Chapter 7, and our lint rules — unused vars, no-console — are rules about OUR code.
+      // Reformatting somebody's published source to satisfy them would change the work.
+      "content/**",
+      // The author's own copies of the three manuscripts, kept beside the repo. Not built,
+      // not imported, not ours.
+      "MY STUFF/**",
     ],
   },
   ...compat.extends("next/core-web-vitals", "next/typescript"),

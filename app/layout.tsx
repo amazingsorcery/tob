@@ -1,122 +1,107 @@
 import type { Metadata, Viewport } from "next";
-import { IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
+import { IBM_Plex_Mono, IBM_Plex_Sans, Source_Serif_4 } from "next/font/google";
 
-import { SiteFooter } from "@/components/layout/site-footer";
-import { SiteHeader } from "@/components/layout/site-header";
-import { HeaderSessionProvider } from "@/components/layout/session-provider";
-import { SkipLink } from "@/components/layout/skip-link";
-import { THEME_INIT_SCRIPT } from "@/components/layout/theme";
-import { rootMetadata } from "@/lib/metadata";
-import { isSignInEnabled } from "@/lib/session-surface";
+import { RouteFocus } from "@/components/route-focus";
+import { SiteFooter } from "@/components/site-footer";
+import { SiteHeader } from "@/components/site-header";
+import { brand } from "@/config/brand";
 
 import "./globals.css";
 
 /**
- * The application shell.
+ * THE FACES.
  *
- * FONTS — `docs/brand/type.md` §3, `docs/brand/HANDOFF.md` §4
- * ----------------------------------------------------------
- * Three files: Sans 400, Sans 600, Mono 400. Latin only. No italics, no Sans 500/700, no
- * Mono 600. Adding a weight needs a reason written into `type.md` first, because this
- * ships to a 2–4 GB VPS and to a reader on a train.
+ * The `-loaded` suffix is required and is not a naming preference: `app/tokens.css` defines
+ * `--font-serif` as `var(--font-serif-loaded), ui-serif, …`. Handing next/font the token name
+ * itself would make the token reference itself and lose its whole fallback stack.
  *
- * `next/font/google` downloads the files at build time and self-hosts them from our own
- * origin, so **no reader's browser ever makes a request to Google**. That is a requirement
- * from product-brief §3.2, not an optimisation: a third-party font request would leak every
- * reader's IP and referrer to a third party, and Persona C would treat that as
- * disqualifying. Do not replace this with a `<link>` to `fonts.googleapis.com`.
+ * Source Serif 4 is the reading face. It is a variable font, so one file covers the regular,
+ * the semibold that sets every theorem label, and everything between.
  *
- * THE `-loaded` SUFFIX IS LOAD-BEARING. `app/tokens.css` §5 declares `--font-sans` and
- * `--font-mono` as the full fallback stacks, each beginning with `var(--font-*-loaded)`.
- * Passing `variable: "--font-sans"` here would make that token reference itself, which is
- * invalid at computed-value time and would silently drop the whole stack. `docs/brand/
- * HANDOFF.md` §4 shows the un-suffixed form; `tokens.css` is the shipped contract and wins.
+ * IBM Plex Sans is interface chrome only — header, navigation, table cells, metadata. Prose
+ * is the serif; the product around it is not.
  *
- * The variable classes go on `<html>`, not `<body>`. `--font-sans` is declared on `:root`
- * and a `var()` inside a custom property is resolved on the element that declares it — so
- * `--font-sans-loaded` must exist at `:root` too, or `--font-sans` resolves to nothing and
- * every element falls back to the browser's default face.
+ * IBM Plex Mono is `preload: false` deliberately. Three code listings exist in the entire
+ * corpus, on two pages out of thirty-three. Preloading a face for the other thirty-one is a
+ * request a reader pays for and never uses; without the preload the browser fetches it only
+ * when a `<code>` actually needs it.
  */
-const fontSans = IBM_Plex_Sans({
+const serif = Source_Serif_4({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-serif-loaded",
+});
+
+const sans = IBM_Plex_Sans({
   subsets: ["latin"],
   weight: ["400", "600"],
   display: "swap",
   variable: "--font-sans-loaded",
 });
 
-const fontMono = IBM_Plex_Mono({
+const mono = IBM_Plex_Mono({
   subsets: ["latin"],
   weight: ["400"],
   display: "swap",
+  preload: false,
   variable: "--font-mono-loaded",
 });
 
-export const metadata: Metadata = rootMetadata;
+export const metadata: Metadata = {
+  metadataBase: new URL(brand.url),
+  title: {
+    default: brand.name,
+    template: `%s · ${brand.name}`,
+  },
+  description: brand.description,
+  applicationName: brand.name,
+  openGraph: {
+    type: "website",
+    siteName: brand.name,
+    title: brand.name,
+    description: brand.description,
+    url: brand.url,
+  },
+  /*
+   * The author is deliberately unset in `config/brand.ts`. An unattributed page is honest;
+   * a page attributed to a placeholder is not, so the field is omitted entirely rather than
+   * filled with something plausible.
+   */
+  ...(brand.authorKnown ? { authors: [{ name: brand.author }] } : {}),
+};
 
 export const viewport: Viewport = {
-  width: "device-width",
-  initialScale: 1,
-  // Both themes are real and both are supported, so the browser is told so — this is what
-  // makes form controls and scrollbars follow the page instead of fighting it.
-  colorScheme: "dark light",
-  themeColor: [
-    { media: "(prefers-color-scheme: dark)", color: "#0b0f15" },
-    { media: "(prefers-color-scheme: light)", color: "#f7f9fb" },
-  ],
+  /*
+   * `--background` in the dark theme. Stated as a literal here because a <meta> tag cannot
+   * read a custom property, and it is the same value tokens.css §1 gives `--slate-900`.
+   * `app/theme-colour.test.ts` asserts the two agree.
+   */
+  themeColor: "#0b0f15",
+  colorScheme: "dark",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html
-      lang="en"
-      dir="ltr"
-      className={`${fontSans.variable} ${fontMono.variable}`}
-      // The boot script below writes `data-theme` before React hydrates, so the server
-      // markup and the client DOM legitimately differ on this one attribute.
-      suppressHydrationWarning
-    >
-      <body className="flex min-h-dvh flex-col bg-background text-foreground">
+    <html lang="en" className={`${serif.variable} ${sans.variable} ${mono.variable}`}>
+      <body className="min-h-dvh bg-background text-foreground antialiased">
         {/*
-          Theme, applied before first paint. Inline and synchronous on purpose: a stored
-          choice and `prefers-color-scheme` are only readable on the client, and anything
-          React renders runs after the browser has already painted. ADR 0016 §4–§5.
-
-          React writes the children of a `<script>` element as raw text — it escapes only a
-          literal closing-script sequence — so this needs no `dangerouslySetInnerHTML`, and
-          therefore needs no lint exception either. ADR 0016 §5 grants one for exactly this
-          script; it turned out not to be necessary. See docs/frontend/HANDOFF-shell.md §8.
-
-          The content is a module-level string literal in `components/layout/theme.ts` with
-          nothing user-controlled interpolated into it, and nothing ever may be.
-        */}
-        <script>{THEME_INIT_SCRIPT}</script>
-
-        {/*
-          THE SESSION PROVIDER IS CONDITIONAL, and this is the one place the deployment mode
-          reaches the whole tree.
-
-          In public-only mode (ADR 0032) no provider is configured, so no session can exist.
-          The two leaves that read one — the nav's session links and the account control —
-          are not rendered at all in that mode, so mounting the provider would buy nothing
-          and cost one `/api/auth/session` request per page view for an answer that is
-          always "nobody". `components/layout/site-nav.tsx` and `account-menu.tsx` are split
-          so that `useSession` is never called rather than merely ignored, which is what
-          makes dropping it safe: `useSession` throws outside a provider, and their tests
-          render them without one.
-        */}
-        <HeaderSessionProvider enabled={isSignInEnabled()}>
-          <SkipLink />
+         * First thing in the tab order, hidden until focused. Without it, reaching a
+         * 36,000-word chapter by keyboard means tabbing past the whole header on every
+         * navigation.
+         */}
+        <a href="#main" className="skip-link">
+          Skip to content
+        </a>
+        <RouteFocus />
+        <div className="flex min-h-dvh flex-col">
           <SiteHeader />
-          {/*
-            `tabIndex={-1}` is what makes the skip link actually move focus rather than only
-            scrolling. Without it Safari and Firefox jump the viewport and leave the focus
-            ring back in the header, which is the classic broken skip link.
-          */}
-          <main id="main" tabIndex={-1} className="flex-1">
+          {/* `tabIndex` so the skip link actually moves focus here; without it the browser
+              scrolls to the target and leaves focus in the header. */}
+          <main id="main" tabIndex={-1} className="flex-1 outline-none">
             {children}
           </main>
           <SiteFooter />
-        </HeaderSessionProvider>
+        </div>
       </body>
     </html>
   );

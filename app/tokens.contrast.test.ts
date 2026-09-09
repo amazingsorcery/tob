@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
@@ -274,16 +274,45 @@ describe("§4.5 opacity is not a colour strategy", () => {
    * and cannot be `disabled`, so WCAG 1.4.3's exemption for inactive components does not
    * reach it and it owes the full 4.5:1.
    */
-  it("the pagination chips dim with a token, not with alpha", () => {
-    const pagination = readFileSync(
-      join(process.cwd(), "components", "directory", "pagination.tsx"),
-      "utf8",
-    );
-    // Strip block comments first: the file explains this rule at length, and the prose
-    // naming `opacity-40` must not be what fails the check.
-    const code = pagination.replace(/\/\*[\s\S]*?\*\//g, "");
-    expect(code).not.toMatch(/\bopacity-\d/);
-    expect(code).toContain("text-muted-foreground");
+  it("nothing in the app dims text with alpha", () => {
+    /*
+     * This used to name one file — `components/directory/pagination.tsx`, the component the
+     * audit caught — and that file no longer exists, so the test passed by reading a shipped
+     * page that had been deleted out from under it. Naming the one known offender was always
+     * the weaker check anyway: the finding was that ANY `<span>` dimmed with alpha owes the
+     * full 4.5:1, because markup that is not a control cannot be an "inactive user interface
+     * component" and WCAG 1.4.3's exemption does not reach it.
+     *
+     * So the whole tree is scanned instead. `disabled:opacity-*` is permitted, on a native
+     * control carrying the `disabled` attribute — that is the exemption, and `button.tsx`
+     * relies on it.
+     */
+    const roots = ["app", "components"];
+    const offenders: string[] = [];
+
+    for (const root of roots) {
+      const dir = join(process.cwd(), root);
+      for (const entry of readdirSync(dir, { recursive: true, encoding: "utf8" })) {
+        if (!entry.endsWith(".tsx") || entry.endsWith(".test.tsx")) continue;
+        const path = join(dir, entry);
+        // Block comments first: several of these files explain this very rule, and prose
+        // naming `opacity-40` must not be what fails the check.
+        const code = readFileSync(path, "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
+        for (const match of code.matchAll(/(\S*)\bopacity-\d+/g)) {
+          const prefix = match[1] ?? "";
+          if (prefix.endsWith("disabled:")) continue;
+          offenders.push(`${root}/${entry}: ${match[0]}`);
+        }
+      }
+    }
+
+    expect(
+      offenders,
+      "Alpha on an ink is invisible to every check that reads tokens, including the matrix " +
+        "above: `--foreground` is 18.20:1 and `opacity-40` renders it at 2.64:1, and both " +
+        "statements are true at once. Use a token from the text ramp instead — see " +
+        "app/tokens.css §4.5 for the two cases where alpha is allowed.",
+    ).toEqual([]);
   });
 
   it("records what opacity-40 actually rendered, so the number is not lost", () => {

@@ -1,0 +1,462 @@
+/* =============================================================================
+ * THE READING SURFACE
+ * =============================================================================
+ *
+ * Owner: frontend-engineer. Imported by `app/globals.css` after the token layer.
+ *
+ * Everything here serves one case: somebody reads 9,000 to 36,000 words of academic
+ * prose, in one sitting, for between 47 and 179 minutes. That is the only user this
+ * file has, and every rule below is answerable to it.
+ *
+ * Colour comes from `app/tokens.css` and nowhere else. The one place this file names a
+ * palette value is §6, where it declares the print theme, and that is a theme declaration
+ * — the same job §3 of tokens.css does for `[data-theme="light"]` — not a component
+ * hardcoding a colour. `app/print-theme.test.ts` asserts every value there is identical to
+ * the light theme's, so the two cannot drift.
+ *
+ * EVERY RULE IN §2 TO §5 IS IN `@layer components`, and that is not tidiness. Tailwind v4
+ * puts its utilities in `@layer utilities`, and an UNLAYERED rule beats every layered one
+ * regardless of specificity — so `.prose { color: … }` written outside a layer would quietly
+ * win against a `text-foreground` utility on the same element, and the utility would appear
+ * to do nothing. In the components layer the ordinary precedence holds: these are the
+ * defaults, and a utility overrides them. §1 (custom properties) and §6 (print) stay
+ * unlayered on purpose — print must beat both.
+ *
+ *   1. Measure and rhythm
+ *   2. Prose
+ *   3. Tables and other things that overflow
+ *   4. Mathematics
+ *   5. Chrome that belongs to reading (table of contents, focus)
+ *   6. Print
+ * ========================================================================== */
+
+/* -----------------------------------------------------------------------------
+ * 1. MEASURE AND RHYTHM
+ *
+ * `--measure` sets the column to about 70 characters, inside the 66–72 that long-form prose
+ * wants. `ch` rather than `rem` so the column follows the face and the size rather than
+ * being re-derived every time either changes.
+ *
+ * THE VALUE IS 53ch AND NOT 68ch, WHICH IS THE OBVIOUS MISTAKE HERE. `1ch` is the advance
+ * of the digit zero, not of an average character, and in Source Serif 4 those differ by a
+ * third: the zero is 9.60px at 19px type while running English text averages 7.29px per
+ * character. `68ch` therefore rendered a 683px column carrying **94 characters** — a third
+ * over the top of the range, and the single worst thing you can do to somebody forty minutes
+ * into a chapter, because the eye loses the line return.
+ *
+ * Measured in Chromium at 1280×900 against a real paragraph of chapter 3 of the philosophy
+ * dissertation, not estimated. `tests/e2e/reading.spec.ts` re-measures it in a browser on
+ * every run, so changing the serif cannot silently move the column: the ratio above is a
+ * property of Source Serif 4 and of nothing else.
+ *
+ * Declared here rather than in tokens.css because it is not a design-system-wide value —
+ * nothing outside the reading surface has an opinion about it — and because the token
+ * file's §4 coverage test classifies every token it finds as a text surface or explicitly
+ * not one, which is a question about colour that this has no answer to.
+ * -------------------------------------------------------------------------- */
+
+:root {
+  --measure: 53ch;
+
+  /* Vertical rhythm. Long-form wants more air between paragraphs than a UI does, and the
+     leading is set for a serif at 19px, which is looser than the sans at 16. */
+  --prose-leading: 1.72;
+  --prose-paragraph-gap: 1.15em;
+}
+
+@layer components {
+  .measure {
+    max-width: var(--measure);
+  }
+
+  /* -----------------------------------------------------------------------------
+   * 2. PROSE
+   *
+   * Applied by `components/reading/prose.tsx` to every rendered Markdown block, so these
+   * selectors are the whole typographic system. Descendant selectors rather than utility
+   * classes because the elements come from `react-markdown` and cannot be given classes
+   * one at a time without an override per tag.
+   * -------------------------------------------------------------------------- */
+
+  .prose {
+    font-family: var(--font-serif);
+    /* 18px on a phone, 19px from the tablet breakpoint up. Below 18 the serif's small
+       details close up; above 20 the measure needs a wider column than a phone has. */
+    font-size: 1.125rem;
+    line-height: var(--prose-leading);
+    /* AAA on --background and on --card in both themes (tokens.css §4.1: 9.56 / 11.61 and
+       8.88 / 12.25). The primary ink is reserved for headings and for emphasis, so that
+       a theorem statement is distinguishable from the paragraph around it by weight AND
+       by ink, which is what these documents do typographically on paper. */
+    color: var(--foreground-secondary);
+    /* Old-style figures would be prettier and would ruin every table of exact values. */
+    font-variant-numeric: lining-nums;
+    /* A long word — a hyphenated compound, a URL in a bibliography — must not push the
+       column wider than the measure. */
+    overflow-wrap: break-word;
+  }
+
+  @media (min-width: 48rem) {
+    .prose {
+      font-size: 1.1875rem;
+    }
+  }
+
+  .prose > * + * {
+    margin-top: var(--prose-paragraph-gap);
+  }
+
+  /*
+   * THE MEASURE APPLIES TO TEXT, NOT TO FIGURES.
+   *
+   * Capping `.prose` itself was the first attempt and it was wrong in a way a screenshot
+   * makes obvious: a five-column table was clipped to 533px and made to scroll while 360px
+   * of empty column sat beside it. A table, a displayed equation and a program listing are
+   * not prose and have no line to return to — they want every pixel the column can give.
+   * Prose wants seventy characters. Both, therefore, rather than one rule for the wrapper.
+   */
+  .prose > :is(p, ul, ol, dl, blockquote, h2, h3, h4, h5, h6, hr) {
+    max-width: var(--measure);
+  }
+
+  /* Headings ------------------------------------------------------------------ */
+
+  .prose :is(h2, h3, h4, h5, h6) {
+    font-family: var(--font-display);
+    font-weight: 600;
+    color: var(--foreground);
+    line-height: 1.25;
+    text-wrap: balance;
+    /*
+     * NO `scroll-margin-top` HERE, deliberately. `app/globals.css` already sets
+     * `scroll-padding-top: 5rem` on <html>, which is what keeps an anchored heading clear of
+     * the 3.5rem sticky header — and the two ADD. With both in place a table-of-contents
+     * click landed the heading 168px down the viewport while `components/reading/chapter-toc.tsx`
+     * reads the position off a line at 120px, so following a link to §2.3 highlighted §2.2
+     * in the rail beside it. One offset, in one file. `tests/e2e/reading.spec.ts` asserts both
+     * halves: that the heading clears the header, and that the rail then agrees with it.
+     */
+  }
+
+  .prose h2 {
+    margin-top: 2.75em;
+    margin-bottom: 0.6em;
+    font-size: 1.5rem;
+    letter-spacing: -0.01em;
+  }
+
+  .prose h3 {
+    margin-top: 2em;
+    margin-bottom: 0.5em;
+    font-size: 1.2rem;
+  }
+
+  .prose :is(h4, h5, h6) {
+    margin-top: 1.75em;
+    margin-bottom: 0.4em;
+    font-size: 1.05rem;
+  }
+
+  /* The first heading of a chapter follows the <h1> the page renders, so it does not need
+     the full separation from what is above it. */
+  .prose > :is(h2, h3):first-child {
+    margin-top: 0;
+  }
+
+  /* Inline ------------------------------------------------------------------- */
+
+  .prose strong {
+    /* Theorem, lemma and definition labels are set in bold throughout the corpus. Lifting
+       them to the primary ink is what makes a run of numbered results scannable. */
+    color: var(--foreground);
+    font-weight: 600;
+  }
+
+  .prose em {
+    font-style: italic;
+  }
+
+  .prose a {
+    color: var(--primary);
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+    text-decoration-thickness: from-font;
+  }
+
+  .prose a:hover {
+    color: var(--primary-hover);
+  }
+
+  .prose code {
+    font-family: var(--font-mono);
+    font-size: 0.86em;
+    background-color: var(--muted);
+    color: var(--foreground);
+    padding: 0.1em 0.3em;
+    border-radius: var(--radius-sm);
+  }
+
+  .prose pre {
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+    line-height: 1.6;
+    background-color: var(--muted);
+    color: var(--foreground);
+    padding: 1rem 1.15rem;
+    border-radius: var(--radius-lg);
+  }
+
+  .prose pre code {
+    background: none;
+    padding: 0;
+    font-size: inherit;
+  }
+
+  /* Lists --------------------------------------------------------------------- */
+
+  .prose :is(ul, ol) {
+    padding-left: 1.6em;
+  }
+
+  .prose ul {
+    list-style: disc;
+  }
+
+  .prose ol {
+    list-style: decimal;
+  }
+
+  .prose li::marker {
+    color: var(--muted-foreground);
+  }
+
+  .prose li + li {
+    margin-top: 0.4em;
+  }
+
+  .prose li > :is(ul, ol) {
+    margin-top: 0.4em;
+  }
+
+  /* Rules --------------------------------------------------------------------- */
+
+  .prose hr {
+    border: 0;
+    border-top: 1px solid var(--border);
+    margin-block: 2.5em;
+  }
+
+  /* -----------------------------------------------------------------------------
+   * 3. THINGS THAT OVERFLOW
+   *
+   * The rule the whole section serves: the page body never scrolls sideways. A table with
+   * nine columns of set-builder notation, or a program listing, scrolls inside its own box.
+   *
+   * `.scroll-box` carries `tabindex="0"` from `components/reading/prose.tsx`, because a
+   * scroll container that cannot be focused cannot be scrolled from the keyboard (WCAG
+   * 2.1.1) — the CSS and the attribute are one mechanism and neither works alone.
+   * -------------------------------------------------------------------------- */
+
+  .scroll-box {
+    overflow-x: auto;
+    max-width: 100%;
+    /* Momentum scrolling on iOS, and a scrollbar that does not overlay the last row. */
+    overscroll-behavior-x: contain;
+  }
+
+  .scroll-box:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
+  }
+
+  .prose table {
+    border-collapse: collapse;
+    font-family: var(--font-sans);
+    font-size: 0.875rem;
+    line-height: 1.45;
+    /* Numbers in a column of exact values have to line up or the table cannot be read. */
+    font-variant-numeric: tabular-nums lining-nums;
+  }
+
+  .prose :is(th, td) {
+    padding: 0.5rem 0.85rem;
+    text-align: left;
+    vertical-align: top;
+    border-bottom: 1px solid var(--border);
+    /* Cells wrap to two words on a phone otherwise, which is unreadable; the container
+       scrolls instead. Every cell in this corpus is a number, a set, or a short phrase. */
+    white-space: nowrap;
+  }
+
+  .prose th {
+    color: var(--foreground);
+    font-weight: 600;
+    border-bottom-color: var(--input);
+  }
+
+  .prose td {
+    color: var(--foreground-secondary);
+  }
+
+  .prose tbody tr:last-child :is(th, td) {
+    border-bottom: 0;
+  }
+
+  /* -----------------------------------------------------------------------------
+   * 4. MATHEMATICS
+   *
+   * Rendered at build time by KaTeX. Two problems to solve, both of them about maths
+   * living inside prose rather than on its own page.
+   * -------------------------------------------------------------------------- */
+
+  /*
+   * Optical size. KaTeX sets in Computer Modern derivatives, whose x-height is smaller than
+   * Source Serif's at the same em, so an inline `$q$` set at 1em reads a step small next to
+   * the words around it. 1.06 is the match; larger and the ascenders start to disturb the
+   * line spacing, which on a page with 400 inline expressions is a visible ripple.
+   */
+  .prose .katex {
+    font-size: 1.06em;
+  }
+
+  /* Inline maths must not stretch the line box, or a paragraph with a fraction in it gets
+     a wider gap above than below and the whole column loses its rhythm. */
+  .prose .katex .frac-line {
+    min-height: 1px;
+  }
+
+  .prose .katex-display {
+    margin-block: 1.6em;
+    /* Several of these are wider than a phone. Scroll rather than overflow, with the
+       vertical axis pinned so a tall fraction cannot produce a second scrollbar. */
+    overflow-x: auto;
+    overflow-y: hidden;
+    /* Room for the scrollbar, and for the focus ring the tab stop needs. */
+    padding-block: 0.35rem;
+  }
+
+  .prose .katex-display:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 4px;
+    border-radius: var(--radius-sm);
+  }
+
+  /* KaTeX's own colour is inherited, so display maths would sit in the body ink. It is a
+     statement, not a sentence, and reads as one at the primary ink. */
+  .prose .katex-display > .katex {
+    color: var(--foreground);
+  }
+
+  /* -----------------------------------------------------------------------------
+   * 5. READING CHROME
+   * -------------------------------------------------------------------------- */
+
+  /*
+   * The sticky table of contents. `max-height` keeps a 25-section chapter from running off
+   * the bottom of the viewport with no way to reach the end of it.
+   */
+  .toc-sticky {
+    position: sticky;
+    top: 5rem;
+    max-height: calc(100vh - 7rem);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  /*
+   * The active entry in the table of contents. It is marked three ways — a rail, a colour
+   * and `aria-current` — because colour alone is not a carrier of meaning and because the
+   * rail is what makes the current position findable at a glance on a list of 25.
+   */
+  .toc-link[aria-current="true"] {
+    color: var(--foreground);
+    border-inline-start-color: var(--primary);
+  }
+}
+
+/* -----------------------------------------------------------------------------
+ * 6. PRINT
+ *
+ * Somebody will print a chapter, and a dark-theme chapter printed as-is is a black page.
+ *
+ * The token values below are the LIGHT THEME's, verbatim — `app/print-theme.test.ts`
+ * asserts each one is character-for-character what `[data-theme="light"]` sets, so this
+ * block cannot drift from the palette it is copying, and every contrast ratio in
+ * tokens.css §4.1 applies to it unchanged. It is written out rather than shared because
+ * CSS has no way to apply one rule's declarations under a second condition.
+ * -------------------------------------------------------------------------- */
+
+@media print {
+  :root {
+    color-scheme: light;
+
+    /* Exactly `[data-theme="light"]`. `--background` is `--paper-50` rather than pure
+       white for that reason and not by preference: browsers do not print background
+       colours unless asked to, so the printed page is the paper either way, and matching
+       the theme is worth more than a tint nobody will see. */
+    --background: var(--paper-50);
+    --foreground: var(--slate-900);
+    --card: var(--paper-0);
+    --card-foreground: var(--slate-900);
+    --muted: var(--paper-100);
+    --muted-foreground: var(--slate-600);
+    --foreground-secondary: var(--slate-700);
+    --foreground-faint: var(--slate-450);
+    --border: var(--paper-200);
+    --input: var(--slate-450);
+    --primary: var(--azure-600);
+    /* Neither can happen on paper. They are here because the reading surface names them,
+       and a token this block does not set keeps its dark value — which is how a focus ring
+       ends up invisible on a printed page nobody thought to check. */
+    --primary-hover: var(--azure-700);
+    --ring: var(--azure-600);
+  }
+
+  @page {
+    margin: 18mm;
+  }
+
+  html {
+    font-size: 11.5pt;
+  }
+
+  /* Navigation is worthless on paper: it cannot be clicked and it costs a page. */
+  .print-hide {
+    display: none !important;
+  }
+
+  .prose {
+    /* The measure on paper is the page, not 68 characters of screen. */
+    max-width: none;
+    font-size: 1rem;
+    line-height: 1.5;
+  }
+
+  /* A heading orphaned at the foot of a page, or a table split down the middle, is the
+     one thing print stylesheets exist to prevent. */
+  .prose :is(h1, h2, h3, h4, h5, h6) {
+    break-after: avoid;
+    page-break-after: avoid;
+  }
+
+  .prose :is(table, pre, .katex-display) {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  /* A scroll container cannot scroll on paper; let it take the width it needs and clip
+     at the page edge rather than silently truncating at the container's. */
+  .scroll-box,
+  .prose .katex-display {
+    overflow: visible;
+  }
+
+  .prose table {
+    font-size: 0.8rem;
+  }
+
+  .prose :is(th, td) {
+    white-space: normal;
+  }
+}
