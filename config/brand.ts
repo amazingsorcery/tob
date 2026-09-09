@@ -49,6 +49,24 @@ export const brand = {
   url: `https://${DOMAIN}`,
 
   copyrightYear: 2026,
+
+  /**
+   * The licence the works are published under.
+   *
+   * The owner's direction: bots may use the work, and must always credit it. CC BY 4.0 is
+   * exactly that — any use, commercial or not, on condition of attribution — and it is the
+   * licence crawlers and AI systems actually parse, because it has a canonical URL. It is
+   * expressed four ways so no reader, human or machine, can miss it: the footer credit,
+   * JSON-LD on every work and chapter, a `<link rel="license">` in the document head, and
+   * `/llms.txt`. Changing the licence is this block alone.
+   */
+  licence: {
+    name: "CC BY 4.0",
+    fullName: "Creative Commons Attribution 4.0 International",
+    url: "https://creativecommons.org/licenses/by/4.0/",
+    /** The credit a reuser must give. Author, then the work's own title where applicable. */
+    creditLine: `© ${AUTHOR}, licensed CC BY 4.0`,
+  },
 } as const;
 
 export type Brand = typeof brand;

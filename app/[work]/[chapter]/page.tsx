@@ -6,6 +6,7 @@ import { ChapterNav } from "@/components/reading/chapter-nav";
 import { ChapterToc } from "@/components/reading/chapter-toc";
 import { InlineMarkdown } from "@/components/reading/inline-markdown";
 import { KatexStylesheet } from "@/components/reading/katex-stylesheet";
+import { ChapterStructuredData } from "@/components/structured-data";
 import { Prose } from "@/components/reading/prose";
 import { chapterLabel, duration, neighbours, plainSummary } from "@/components/reading/work-meta";
 import { allWorks, chapterBySlug, workBySlug } from "@/lib/works";
@@ -83,6 +84,7 @@ export default async function ChapterPage({
   return (
     <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6 sm:py-14">
       {work.hasMath ? <KatexStylesheet /> : null}
+      <ChapterStructuredData work={work} chapter={chapter} />
 
       {/*
        * `min-w-0` on the prose column is load-bearing. A grid item defaults to a minimum

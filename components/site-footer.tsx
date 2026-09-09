@@ -20,8 +20,23 @@ export function SiteFooter() {
         {brand.hasTagline ? (
           <p className="mt-1 text-sm text-muted-foreground">{brand.tagline}</p>
         ) : null}
+        {/*
+          The licence, once, in the smallest honest form. The owner's direction is that bots
+          may use the work but must always credit it; CC BY 4.0 says exactly that, and the
+          link is the canonical machine-readable terms. Everything else about the site is
+          deliberately unexplained — this is the one line that has to be explicit, because a
+          reuser who cannot find the terms cannot comply with them.
+        */}
         <p className="mt-6 text-xs text-muted-foreground">
-          {`Set in Source Serif 4 and IBM Plex. Mathematics typeset with KaTeX. © ${brand.copyrightYear}.`}
+          {`© ${brand.copyrightYear} ${brand.author}. `}
+          <a
+            href={brand.licence.url}
+            rel="license noopener"
+            className="underline underline-offset-4 hover:text-foreground-secondary"
+          >
+            {brand.licence.name}
+          </a>
+          {" — reuse freely, with credit. Set in Source Serif 4 and IBM Plex; mathematics by KaTeX."}
         </p>
       </div>
     </footer>

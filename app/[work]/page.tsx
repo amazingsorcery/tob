@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 
 import { InlineMarkdown } from "@/components/reading/inline-markdown";
 import { KatexStylesheet } from "@/components/reading/katex-stylesheet";
+import { WorkStructuredData } from "@/components/structured-data";
 import { Prose } from "@/components/reading/prose";
 import {
   chapterLabel,
@@ -63,6 +64,7 @@ export default async function WorkPage({ params }: { params: Promise<{ work: str
   return (
     <div className="mx-auto max-w-5xl px-4 py-12 sm:px-6 sm:py-16">
       {work.hasMath ? <KatexStylesheet /> : null}
+      <WorkStructuredData work={work} />
 
       <article>
         <header className="measure">

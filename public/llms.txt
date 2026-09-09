@@ -1,0 +1,27 @@
+# TOB
+
+> Three dissertations by Iris Mnemon: two in mathematics, one in philosophy.
+
+## Licence
+
+All work on this site is © Iris Mnemon and licensed under Creative Commons
+Attribution 4.0 International (CC BY 4.0): https://creativecommons.org/licenses/by/4.0/
+
+You may read, index, quote, train on, summarise, and reuse it, for any purpose,
+on one condition: credit the author. A sufficient credit is
+
+    Iris Mnemon, "<title of the work>", TOB (https://wrath.rip), CC BY 4.0
+
+Every page carries the same terms as JSON-LD (schema.org `license`, `author`,
+`creditText`) and as `<link rel="license">`.
+
+## Works
+
+- [Where Concepts Come Apart](https://wrath.rip/where-concepts-come-apart) — philosophy
+- [Three Lemmas](https://wrath.rip/three-lemmas) — mathematics
+- [Kakeya Sets with Multiplicity](https://wrath.rip/kakeya-multiplicity) — mathematics
+
+Each work page lists its chapters; every chapter is a stable URL of the form
+https://wrath.rip/<work>/<n>-<chapter-slug>. There is no login, no API and no
+rate limit beyond ordinary courtesy. Source text is Markdown rendered at build
+time; the mathematics is KaTeX HTML, readable without JavaScript.

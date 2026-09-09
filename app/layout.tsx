@@ -85,6 +85,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className={`${serif.variable} ${sans.variable} ${mono.variable}`}>
       <body className="min-h-dvh bg-background text-foreground antialiased">
         {/*
+         * Hoisted into <head> by React. The machine-readable licence pointer, so a crawler
+         * that reads link relations finds the terms without parsing the footer or the JSON-LD.
+         */}
+        <link rel="license" href={brand.licence.url} />
+        {/*
          * First thing in the tab order, hidden until focused. Without it, reaching a
          * 36,000-word chapter by keyboard means tabbing past the whole header on every
          * navigation.
