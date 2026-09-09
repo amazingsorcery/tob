@@ -2,22 +2,35 @@
 #
 # One-command first deploy on a fresh Ubuntu VPS.
 #
-# This is the whole of docs/deploy/RUNBOOK.md sections 2 through 7, collapsed into a script
-# for an operator who has not read it. The runbook is still the reference — it explains why
-# each step exists and how to recover when one fails. This exists so a first deploy does not
-# require reading 2,300 lines first.
-#
 #   sudo ./infra/bootstrap.sh wrath.rip you@example.com
+#
+# This is docs/deploy/RUNBOOK.md "Provisioning a fresh box" and "First deploy" collapsed
+# into a script. The runbook is still the reference: it explains why each step is there and
+# what to do when one fails.
 #
 # Idempotent: safe to run again after a failure, and safe to run twice. Every step checks
 # whether it has already been done.
 #
 # WHAT IT DELIBERATELY DOES NOT DO
 #
-#   It does not disable password SSH login and it does not remove your existing user. Both
-#   are in the runbook as manual steps, on purpose: automating them is how an operator locks
-#   themselves out of a machine they have no console access to. Do them once you have
-#   confirmed key-based login works, following RUNBOOK section 2.
+#   * It does not disable password SSH login and it does not touch your user. Both are in
+#     the runbook as manual steps, on purpose: automating them is how an operator locks
+#     themselves out of a machine they have no console access to. Do them once you have
+#     confirmed key-based login works.
+#
+#   * It does not create a swap file. The old stack's bootstrap did, because `next build`
+#     was the largest thing on a 2-4 GB box. The number, measured on this corpus: the build
+#     peaks around 2.5 GB across its worker processes (39 pages, three dissertations, every
+#     equation through KaTeX), and Next scales those workers with CPU count, so a 2-vCPU
+#     VPS peaks lower than that. The target box has 8 GB and runs two containers whose
+#     limits total 768 MB. There is nothing to insure against. If you are deploying to a
+#     box with less than 4 GB, add swap first — the commands are in the runbook under
+#     "The build was killed".
+#
+#   * It generates no secrets, because there are none. The application reads no environment
+#     variable at all; the .env it writes has two lines and both are for Caddy.
+#
+#   * It seeds nothing. There is no database.
 #
 set -euo pipefail
 
@@ -25,40 +38,31 @@ DOMAIN="${1:-}"
 ACME_EMAIL="${2:-}"
 APP_DIR="${APP_DIR:-/opt/app}"
 
-die() { printf '\nERROR: %s\n' "$*" >&2; exit 1; }
+die() {
+	printf '\nERROR: %s\n' "$*" >&2
+	exit 1
+}
 step() { printf '\n==> %s\n' "$*"; }
 note() { printf '    %s\n' "$*"; }
 
-[ -n "$DOMAIN" ] || die "Usage: sudo ./infra/bootstrap.sh <domain> <email-for-tls-notices>
+[ -n "${DOMAIN}" ] || die "Usage: sudo ./infra/bootstrap.sh <domain> <email-for-tls-notices>
   e.g. sudo ./infra/bootstrap.sh wrath.rip you@example.com"
-[ -n "$ACME_EMAIL" ] || die "Second argument missing: an email address for Let's Encrypt expiry notices."
+[ -n "${ACME_EMAIL}" ] || die "Second argument missing: an email address for Let's Encrypt expiry notices."
 [ "$(id -u)" -eq 0 ] || die "Run with sudo."
 [ -f "${APP_DIR}/docker-compose.prod.yml" ] || die "No application at ${APP_DIR}.
-  Put the repository there first, then run this again. See the note printed by
-  'Getting the code onto the server' in docs/deploy/RUNBOOK.md."
+  Put the source tree there first, then run this again. See docs/deploy/RUNBOOK.md,
+  'Getting the code onto the box'."
 
-step "1/8  System packages"
+step "0/6  The box"
+note "$(awk '/MemTotal/ {printf "%d MB RAM", int($2/1024)}' /proc/meminfo), $(df -Ph / | awk 'NR==2 {print $4}') free on /, $(nproc) vCPU"
+
+step "1/6  System packages"
 export DEBIAN_FRONTEND=noninteractive
 apt-get update -qq
-apt-get install -y -qq ca-certificates curl gnupg ufw fail2ban unattended-upgrades jq >/dev/null
+apt-get install -y -qq ca-certificates curl gnupg ufw fail2ban unattended-upgrades >/dev/null
 note "done"
 
-step "2/8  Swap"
-# next build peaks above 1.5 GB and runs on the host, outside every container limit. On a
-# 4 GB box it is the most common cause of a failed deploy (exit 137, the OOM killer). A
-# swap file turns that failure into a slow build. Cheap insurance even on 8 GB.
-if swapon --show | grep -q '/swapfile'; then
-  note "already present"
-else
-  fallocate -l 2G /swapfile
-  chmod 600 /swapfile
-  mkswap /swapfile >/dev/null
-  swapon /swapfile
-  grep -q '^/swapfile' /etc/fstab || echo '/swapfile none swap sw 0 0' >> /etc/fstab
-  note "2 GB swap file created and enabled"
-fi
-
-step "3/8  Firewall"
+step "2/6  Firewall"
 # Order matters: allow SSH BEFORE enabling, or enabling the firewall ends this session and
 # every future one.
 ufw allow OpenSSH >/dev/null
@@ -67,111 +71,58 @@ ufw allow 443/tcp >/dev/null
 ufw --force enable >/dev/null
 note "22, 80 and 443 open; everything else closed"
 
-step "4/8  fail2ban and unattended upgrades"
+step "3/6  fail2ban and unattended upgrades"
 systemctl enable --now fail2ban >/dev/null 2>&1 || true
 dpkg-reconfigure -f noninteractive unattended-upgrades >/dev/null 2>&1 || true
 note "done"
 
-step "5/8  Docker"
+step "4/6  Docker"
 if command -v docker >/dev/null 2>&1; then
-  note "already installed: $(docker --version)"
+	note "already installed: $(docker --version)"
 else
-  install -m 0755 -d /etc/apt/keyrings
-  curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
-  chmod a+r /etc/apt/keyrings/docker.asc
-  echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] \
-https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo "$VERSION_CODENAME") stable" \
-    > /etc/apt/sources.list.d/docker.list
-  apt-get update -qq
-  apt-get install -y -qq docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin >/dev/null
-  systemctl enable --now docker >/dev/null
-  note "installed: $(docker --version)"
+	install -m 0755 -d /etc/apt/keyrings
+	curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+	chmod a+r /etc/apt/keyrings/docker.asc
+	echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] \
+https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo "${VERSION_CODENAME}") stable" \
+		>/etc/apt/sources.list.d/docker.list
+	apt-get update -qq
+	apt-get install -y -qq docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin >/dev/null
+	systemctl enable --now docker >/dev/null
+	note "installed: $(docker --version)"
 fi
 
-step "6/8  Environment file"
+step "5/6  Environment file"
 ENV_FILE="${APP_DIR}/.env"
-if [ -f "$ENV_FILE" ]; then
-  note "${ENV_FILE} already exists — leaving it alone."
-  note "Delete it and re-run if you want it regenerated."
+if [ -f "${ENV_FILE}" ]; then
+	note "${ENV_FILE} already exists — leaving it alone."
+	note "Delete it and re-run if you want it regenerated."
 else
-  # Secrets are generated here rather than asked for. An operator who has to invent a
-  # 32-byte secret usually invents a weak one.
-  AUTH_SECRET="$(openssl rand -base64 32)"
-  RATE_LIMIT_SECRET="$(openssl rand -base64 32)"
-  POSTGRES_PASSWORD="$(openssl rand -base64 24 | tr -d '/+=' | head -c 32)"
-
-  cat > "$ENV_FILE" <<ENVEOF
-# Generated by infra/bootstrap.sh on $(date -u '+%Y-%m-%dT%H:%M:%SZ').
-# Every value here is a secret. This file is 0600 and must never be committed.
+	cat >"${ENV_FILE}" <<ENVEOF
+# Written by infra/bootstrap.sh on $(date -u '+%Y-%m-%dT%H:%M:%SZ').
+#
+# Two variables, both read by Caddy, neither of them a secret. The application reads no
+# environment variable at all: every page is generated at build time from content/works/.
+# See .env.example for what each one does and for the optional overrides.
 
 DOMAIN=${DOMAIN}
-APP_URL=https://${DOMAIN}
 ACME_EMAIL=${ACME_EMAIL}
-NODE_ENV=production
-TZ=UTC
-
-POSTGRES_USER=app
-POSTGRES_DB=app
-POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-DATABASE_URL=postgresql://app:${POSTGRES_PASSWORD}@db:5432/app
-
-AUTH_SECRET=${AUTH_SECRET}
-AUTH_TRUST_HOST=true
-RATE_LIMIT_SECRET=${RATE_LIMIT_SECRET}
-
-LOG_LEVEL=info
-
-# ---------------------------------------------------------------------------------------
-# SIGN-IN — deliberately left blank. The site runs public-only.
-# ---------------------------------------------------------------------------------------
-# The map, all 15 tools, the directory, the playbooks and search are public and work now.
-# Only saved case workspaces need an account, and that surface is hidden rather than broken
-# while this is blank.
-#
-# To enable sign-in later, fill ONE of these blocks and re-run ./infra/deploy.sh:
-#
-#   GitHub (easiest — free, two minutes, no email setup):
-#     github.com/settings/developers -> New OAuth App
-#     Homepage URL:      https://${DOMAIN}
-#     Callback URL:      https://${DOMAIN}/api/auth/callback/github
-#   AUTH_GITHUB_ID=
-#   AUTH_GITHUB_SECRET=
-#
-#   Email magic links (needs an SMTP service that sends mail for you):
-#   SMTP_HOST=
-#   SMTP_PORT=587
-#   SMTP_USER=
-#   SMTP_PASSWORD=
-#   SMTP_FROM=no-reply@${DOMAIN}
-
-# Admin accounts, comma separated. Set this to your own address before enabling sign-in.
-ADMIN_EMAILS=
 ENVEOF
-  chmod 600 "$ENV_FILE"
-  note "written to ${ENV_FILE} with generated secrets (mode 0600)"
+	chmod 600 "${ENV_FILE}"
+	note "written to ${ENV_FILE} (mode 0600)"
 fi
 
-step "7/8  Deploy"
-cd "$APP_DIR"
-# --no-pull when there is no git checkout. The code can arrive by other means than a clone —
-# it arrived by tar over ssh on the first real deploy — and deploy.sh's `git pull --ff-only`
-# aborts the whole run on a directory that is not a repository.
-if [ -d "${APP_DIR}/.git" ]; then
-  ./infra/deploy.sh
+step "6/6  Deploy"
+cd "${APP_DIR}"
+# --no-pull when there is no git checkout with a remote. The source can arrive by other
+# means than a clone — on this deployment it arrives by tar over ssh — and deploy.sh's
+# pull step would have nothing to pull from. deploy.sh detects both cases itself; passing
+# the flag here makes the intent explicit for the common one.
+if [ -d "${APP_DIR}/.git" ] && git -C "${APP_DIR}" remote get-url origin >/dev/null 2>&1; then
+	./infra/deploy.sh
 else
-  note "no .git here — deploying the files as they are"
-  ./infra/deploy.sh --no-pull
-fi
-
-step "8/8  Seed the catalogue"
-# Deliberately not part of deploy.sh: loading content should be a deliberate act, not a
-# silent side effect of every deploy. Safe to run again — it upserts by slug and never
-# resets an editor's decisions.
-if docker compose -f docker-compose.prod.yml exec -T db psql -U app -d app -tAc \
-     'select count(*) from tools' 2>/dev/null | grep -qE '^[1-9]'; then
-  note "catalogue already present — skipping"
-else
-  docker compose -f docker-compose.prod.yml --profile tools run --rm migrate pnpm db:seed
+	note "no git remote here — deploying the tree as it stands"
+	./infra/deploy.sh --no-pull
 fi
 
 cat <<DONEEOF
@@ -180,14 +131,15 @@ cat <<DONEEOF
   Live at https://${DOMAIN}
 
   The certificate is issued on the first request, which takes 5-30 seconds.
+  If it does not appear, the cause is almost always DNS or port 80:
+      docker compose -f docker-compose.prod.yml logs caddy | grep -i acme
 
-  EXPECTED, NOT A BUG: every live data source is switched off. All 13 ship
-  disabled by design, so the map and the tools say "an operator switched this
-  source off". Turning one on is a deliberate act because some of these
-  sources ask, in their own terms, that a human reads them first.
+  STILL TO DO BY HAND, once you have confirmed key-based SSH works:
+      docs/deploy/RUNBOOK.md -> "Provisioning a fresh box", step 2
+      (disable password authentication and root login)
 
-    docs/deploy/RUNBOOK.md section 18.5  — how to enable a source
-    docs/deploy/RUNBOOK.md section 2     — SSH hardening, still to do by hand
+  Optional, recommended:
+      the periodic health report — RUNBOOK, "The health timer"
 ============================================================================
 
 DONEEOF
