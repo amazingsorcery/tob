@@ -12,7 +12,7 @@ Philosophy's central problems are notorious for their persistence. Two and a hal
 
 It argues that the concepts at the centre of philosophy's persistent problems are *polyfunctional*: a single concept does several jobs in our practices, each job imposes its own application condition, and the conditions coincide extensionally across the range of cases from which the concept is learned. Philosophical problems arise where these conditions come apart. The thought experiment is the instrument by which such divergence cases are constructed in advance of the world delivering them.
 
-On this account the familiar structure of a philosophical problem, a set of individually compelling but jointly inconsistent claims, is explained rather than merely described: each claim articulates one function of the concept, and each is compelling because the concept really does perform that function. Doctrinal positions are prioritisations of functions. The residual disagreement, once factual and merely verbal components have been removed, is a normative disagreement about which function the shared concept should serve in the divergence region. That disagreement is rationally stable for the same reason that reasonable disagreement about the weighting of plural values is stable, and its persistence is therefore not a scandal.
+On this account the familiar structure of a philosophical problem, a set of individually compelling but jointly inconsistent claims, is explained rather than merely described: each claim articulates one function of the concept, and each is compelling because the concept really does perform that function. Doctrinal positions are prioritisations of functions. The residual disagreement, once factual and merely verbal components have been removed, is a normative disagreement about which function the shared concept should serve in the divergence region. That disagreement is rationally stable for the same reason that reasonable disagreement about the weighting of plural values is stable, and its persistence is therefore not a scandal. An aggregation theorem, adapted from the theory of judgment aggregation, shows further that when a concept's logical form links its verdicts across cases, the only systematic resolutions that respect the coincidence range are those on which a fixed set of functions must all be satisfied; majorities and weightings are excluded, which explains why the positions in a persistent debate are discrete and why no compromise view survives.
 
 Progress, on this account, consists in the discovery of divergence, the articulation of functions, their disentanglement into distinct concepts, and the relocation of the residual question to the normative domain, where it can be argued as the practical question it is. The account is developed through four case studies (knowledge, free will, personal identity, causation), defended against objections including a reflexive application to the concept of progress itself, and shown to predict the pattern of stability and variance reported in experimental philosophy.
 
@@ -34,7 +34,9 @@ Progress, on this account, consists in the discovery of divergence, the articula
    6.1 Accounts of progress · 6.2 Disentanglement · 6.3 The record · 6.4 Re-unification · 6.5 Anticipation · 6.6 Reconciling the parties
 7. **Reflexivity, Objections, and Limits**
    7.1 The concept of progress · 7.2 Triviality · 7.3 Realism · 7.4 Conventionalism · 7.5 Circularity · 7.6 Demotion · 7.7 Success stories · 7.8 What the account does not cover · 7.9 What would refute it
-8. **Conclusion: What Philosophy Is For**
+8. **No Compromise: An Aggregation Theorem for Divergence**
+   8.1 The question Chapter 5 left open · 8.2 Functions as a committee · 8.3 Links · 8.4 The theorem · 8.5 The five exits · 8.6 What the theorem adds · 8.7 Assumptions, limits, and a test
+9. **Conclusion: What Philosophy Is For**
 
 **Bibliography**
 
@@ -162,7 +164,9 @@ Chapter 6 defends T4. It surveys accounts of progress, sets out the disentanglem
 
 Chapter 7 defends T5 and takes the objections: triviality, realism, conventionalism, circularity, demotion, and the apparent counterexamples of philosophy's convergent successes. The objection from circularity it answers only in part, and §7.5 says where the answer stops. It marks the account's limits and states what would refute it.
 
-Chapter 8 concludes with a statement of what, on this account, philosophy is for.
+Chapter 8 turns T3 into a theorem. It models the functions of a concept as the members of a committee and the concept's logical-form theses as interconnections among the cases, and shows, by an argument of the kind used in the theory of judgment aggregation, that the only ways of fixing a concept's extension that respect its coincidence range, its logical form, and the demand for a single application condition are the oligarchies, on which the concept applies exactly when every function in a fixed set applies. Majorities and weightings are excluded. Every standing position in the four debates is then either an oligarchy or one of five ways of relaxing the theorem's premisses, and the absence of compromise positions is explained.
+
+Chapter 9 concludes with a statement of what, on this account, philosophy is for.
 # Chapter 2. The Phenomenon: Aporetic Clusters
 
 ## 2.1 What a persistent problem is
@@ -623,7 +627,7 @@ Why does the residual disagreement not get settled? Five features of the situati
 
 **Self-selection.** Finally, philosophers do not arrive at positions on the aporiai by weighing the arguments from a neutral standpoint; they arrive with weightings and find the arguments that express them. This is not a criticism. It is the natural consequence of the fact that the residual question is normative and that normative outlooks precede philosophical training. But it means that the accumulation of arguments about cases cannot be expected to change the distribution of opinion, because arguments about cases sharpen the map and do not change the weights; and arguments about weights, which are arguments in ethics, move slowly and are themselves subject to reasonable disagreement.
 
-Together these explain E5. The distribution of professional opinion on a persistent aporia is a distribution of weightings; weightings are stable under argument about cases; and there is no authority to impose one. The figures of §1.2 are what one should expect.
+Together these explain E5. The distribution of professional opinion on a persistent aporia is a distribution of weightings; weightings are stable under argument about cases; and there is no authority to impose one. The figures of §1.2 are what one should expect. Chapter 8 adds a sixth feature of a different kind: where the concept's logical form links its verdicts across cases, intermediate weightings are not coherent options at all, so the parties could not meet halfway even if they wished to.
 
 ## 5.5 The epistemology of disagreement
 
@@ -912,18 +916,166 @@ The account makes the following predictions, each of which could fail.
 
 **(P5)** No disentanglement is reversed. Since the case-partition criterion entails that functions once separated cannot be re-merged, the discovery of a case that re-merged them would show the criterion to be wrong.
 
-Two empirical studies would test the account directly. The first is a *decomposed survey*: present professional philosophers with the headline question of an aporia and with its decomposed components, and predict a stable split on the headline together with near-consensus on the components. For free will the prediction is that respondents will divide on compatibilism in roughly the proportions of the PhilPapers surveys while agreeing, at rates above ninety per cent, that Frankfurt cases separate leeway from guidance control, that reasons-responsiveness is compatible with determinism, and that leeway in the unconditional sense is not. The second is a *salience manipulation*: present the same divergence case under framings that foreground different practices, a courtroom frame and a laboratory frame for a causal-selection case, a first-person and a third-person frame for a personal-identity case, and predict that verdicts shift in the direction of the function the frame engages. Williams (1970) and Nichols and Knobe (2007) have in effect already run versions of the second, and the results are as predicted; a systematic programme would put the account to a sharper test.
-# Chapter 8. Conclusion: What Philosophy Is For
+A sixth prediction, (P6), follows from the theorem of Chapter 8 and is stated in §8.7.
 
-## 8.1 The argument in retrospect
+Two empirical studies would test the account directly. The first is a *decomposed survey*: present professional philosophers with the headline question of an aporia and with its decomposed components, and predict a stable split on the headline together with near-consensus on the components. For free will the prediction is that respondents will divide on compatibilism in roughly the proportions of the PhilPapers surveys while agreeing, at rates above ninety per cent, that Frankfurt cases separate leeway from guidance control, that reasons-responsiveness is compatible with determinism, and that leeway in the unconditional sense is not. The second is a *salience manipulation*: present the same divergence case under framings that foreground different practices, a courtroom frame and a laboratory frame for a causal-selection case, a first-person and a third-person frame for a personal-identity case, and predict that verdicts shift in the direction of the function the frame engages. Williams (1970) and Nichols and Knobe (2007) have in effect already run versions of the second, and the results are as predicted; a systematic programme would put the account to a sharper test.
+# Chapter 8. No Compromise: An Aggregation Theorem for Divergence
+
+## 8.1 The question Chapter 5 left open
+
+Chapter 5 argued that what remains of a persistent dispute, once its factual and verbal layers are removed, is a normative question about which of a concept's functions should govern its application in the divergence region, and §5.4 gave five reasons why that question is not settled. All five concern the *weights*: nothing in the concept fixes them, the ends they serve are plural, no practice has authority to impose them, disciplinary training entrenches them, and philosophers arrive with them. The picture is of parties who weigh the same considerations differently and cannot be brought to weigh them the same.
+
+That picture invites an objection which Chapter 5 did not answer. If the dispute is about weights, why is there no compromise? Weights can be split. A community that cannot agree whether safety or cognitive ability should govern "knows" in the fake-barn case could adopt the rule that the concept applies when a majority of its functions apply, or when the functions carrying most of the weight apply, and the parties could bargain over the weights. In other domains where plural considerations bear on a single verdict this is what happens: committees vote, judges balance factors, regulators score. Yet the persistent debates contain no such positions. Nobody defends the view that a person is the same person as an earlier one if and only if at least two of the three continuities hold, or that an event causes another if and only if most of the marks of causation are present. The standing positions are of other kinds: views on which one function governs; views on which several functions must all be satisfied; views on which the governing function changes with the case; views on which the concept's own logical form is given up; and views on which the concept applies to nothing. Disjunctive proposals, on which the concept applies if any of several conditions is met, are made from time to time and are met, with a regularity that itself calls for explanation, by counterexamples turning on the concept's logical form: fission and fusion for disjunctive criteria of personal identity, failures of closure for disjunctive criteria of knowledge.
+
+This chapter explains the absence of compromise by a theorem. The theorem is a translation into the present setting of a result from the theory of judgment aggregation, and the translation is, I shall argue, the natural one: the functions of a polyfunctional concept stand to its extension as the members of a committee stand to its collective judgment, and the logical-form theses that appear in every aporetic cluster, that identity is one–one, that knowledge is closed under known entailment, that causation is transitive, play the role that logical interconnections among propositions play in the aggregation setting. Once the translation is made, a known kind of result shows that the only ways of fixing the concept's extension across all cases that respect its coincidence range, its logical form, and the demand that a concept have *an* application condition are the *oligarchies*: the concept applies in a divergence case exactly when every function in some fixed subset applies. Majorities and weightings are excluded, not because they are unattractive but because they are inconsistent with the concept's logical form on some profile of verdicts. The standing positions in the four debates turn out to be either oligarchies or one of exactly five ways of relaxing the conditions of the theorem, and the chapter closes by saying what this adds to T3 and T4 and what would refute it.
+
+The formal apparatus is deliberately minimal. The proofs use nothing beyond finite lattices of zeros and ones, and a reader who has followed the definitions of Chapter 3 can follow them in full.
+
+## 8.2 Functions as a committee
+
+Let X be a set of *cases*, the situations to which the concept C might or might not apply. For personal identity the cases are ordered pairs of person-stages; for knowledge they are pairs of a subject and a proposition; for causation they are ordered pairs of events. Let F₁, …, Fₙ be the functions of C, with n ≥ 2, individuated by the case-partition criterion of §3.3, so that no two have the same application condition. Each function Fᵢ delivers a *verdict map* vᵢ: X → {0, 1}, with vᵢ(x) = 1 when applying C in case x serves Fᵢ and vᵢ(x) = 0 when it does not. A *profile* is a family P = (v₁, …, vₙ) of verdict maps, one per function.
+
+Chapter 3 said that a concept has a *logical form*: constraints on its extension that hold not because of what any function requires in a given case but because of what kind of predicate the concept is. "Same person" is an equivalence relation; "knows" is closed under known entailment and is factive; "causes" is transitive, or so one of Hall's theses has it; "free" is governed, on the incompatibilist's reconstruction, by a transfer principle. Formally, a logical form is a set Λ of verdict maps, the *admissible* ones: the equivalence relations on the set of person-stages, the closure-respecting knowledge states, the transitive relations on events. A profile is *rational* if every vᵢ belongs to Λ. It will matter below that functions need not be individually rational: Reid's brave officer shows that memory connectedness is not transitive, and Parfit's Relation R is not one–one; Nozick's tracking condition is not closed under known entailment. I return to this in §8.5.
+
+A *resolution* is a rule ρ that assigns to every rational profile a verdict map ρ(P): X → {0, 1}, the extension of C given what its functions say. The community's task in the divergence region, on the account of Chapter 5, is to choose a resolution. The following conditions on ρ formalise the demands that the account has already identified.
+
+**Unanimity (U).** If v₁(x) = … = vₙ(x) = a, then ρ(P)(x) = a. This is fidelity to the coincidence range: where the functions agree, the concept does what they agree on. Any resolution violating it would override the cases from which the concept was learned.
+
+**Systematicity (S).** There is a single function f: {0, 1}ⁿ → {0, 1} such that ρ(P)(x) = f(v₁(x), …, vₙ(x)) for every rational profile P and every case x. Systematicity is the conjunction of two conditions familiar from the aggregation literature: *independence*, that the concept's verdict on a case depends only on the functions' verdicts on that case, and *neutrality*, that the same rule is used for every case. Together they say that the concept has an application condition in the traditional sense, a fixed rule for combining what its functions say. Traditional conceptual analysis presupposes (S); it is what makes the analysis a *definition* rather than a list.
+
+**Collective rationality (CR).** ρ(P) ∈ Λ for every rational profile P. The concept keeps its logical form: whatever the functions say, "same person" comes out an equivalence relation and "knows" comes out closed.
+
+The parallel with judgment aggregation is exact, and it is worth stating. In the setting studied by Kornhauser and Sager (1986), Pettit (2001), and List and Pettit (2002), a group of individuals each holds a consistent set of judgments on logically interconnected propositions, and a rule aggregates the individual judgment sets into a collective one. The *discursive dilemma* is that propositionwise majority voting can yield an inconsistent collective set: if three judges hold, respectively, (p, q, and therefore p∧q), (p, not-q, not-p∧q), and (not-p, q, not-p∧q), then majorities accept p, accept q, and reject p∧q. List and Pettit proved that no aggregation rule satisfying universal domain, collective rationality, anonymity, and systematicity exists for such agendas, and Dietrich and List (2007) and Nehring and Puppe (2010) gave the general Arrovian form of the result: for agendas with sufficient interconnections, the only rules satisfying independence, unanimity, and collective rationality are dictatorships. Gärdenfors (2006) and Dietrich and List (2008) showed that when the collective is permitted to abstain the surviving rules are *oligarchies*, on which a proposition is accepted exactly when every member of a fixed subset accepts it. List (2012) reviews the field.
+
+The application of these results outside the theory of committees has a precedent that I follow. Okasha (2011) observed that Kuhn's account of theory choice, on which several criteria (accuracy, consistency, scope, simplicity, fruitfulness) bear on the choice and no algorithm combines them, has the structure of a social choice problem with the criteria as voters, and that Arrow's theorem (1951) then shows that no combination rule satisfying the standard conditions exists; Morreau (2015) replied that the criteria supply more information than Arrow's framework allows, and Stegenga (2013) applied the same strategy to the amalgamation of evidence. The present chapter makes the corresponding move for concepts. The voters are the functions of a single concept; the propositions are the cases; and the interconnections are the concept's logical-form theses. What is new is not the theorem but the identification of its three ingredients in the anatomy of a philosophical problem given in Chapter 2, and the consequences that follow for the shape of the position space.
+
+## 8.3 Links
+
+The results require that the logical form Λ connect the verdicts on some cases to the verdicts on others. Two kinds of connection suffice for the four case studies.
+
+**Definition (conditional link).** Λ has a *conditional link* at the cases x, y, z if (i) every admissible v satisfies: if v(x) = 1 and v(y) = 1 then v(z) = 1; and (ii) every triple (a, b, c) of zeros and ones other than (1, 1, 0) is realised by some admissible v, that is, some v ∈ Λ has (v(x), v(y), v(z)) = (a, b, c).
+
+Clause (ii) is a richness condition: it says that the implication in (i) is the only constraint Λ imposes on these three cases, so that the functions may say anything about them short of violating it. Knowledge under closure is the paradigm. Take x = "S knows p", y = "S knows that p entails q", z = "S knows q". Closure is (i). For (ii), each of the seven remaining triples describes a possible closed knowledge state: a subject may know q without knowing p or the entailment, know p and q without knowing the entailment, know the entailment and q without knowing p, and so on. Transitivity of causation gives a conditional link in the same way, with x = "c causes d", y = "d causes e", z = "c causes e".
+
+**Definition (equivalence link).** Λ has an *equivalence link* at x, y, z if (i) every admissible v has (v(x), v(y), v(z)) among the five triples (0,0,0), (1,0,0), (0,1,0), (0,0,1), (1,1,1); and (ii) each of (0,0,0), (1,0,0), (0,1,0), (1,1,1) is realised by some admissible v.
+
+This is the form the constraint takes when Λ consists of equivalence relations and x, y, z are the three pairs among three items a, b, c: the pairs are either all identified, none identified, or exactly one identified, since identifying two of the three pairs forces the third. Personal identity is the paradigm, with x = (a, b), y = (b, c), z = (a, c) for three person-stages.
+
+One further property of Λ is used for the converse direction.
+
+**Definition (meet-closure).** Λ is *meet-closed* if whenever v and w are admissible, so is their pointwise minimum v ∧ w, the verdict map that says 1 exactly where both do.
+
+The three paradigm logical forms are meet-closed: the intersection of two equivalence relations is an equivalence relation; the intersection of two transitive relations is transitive; and if two knowledge states each satisfy closure, a proposition known in both together with an entailment known in both yields a consequence known in both. Meet-closure fails for logical forms with disjunctive constraints, a point taken up in §8.4.
+
+## 8.4 The theorem
+
+For a subset T of the functions, write e(T) for the *column* in {0, 1}ⁿ whose i-th entry is 1 exactly when i ∈ T; a column records what the n functions say about one case. Columns are ordered coordinatewise, a ≤ c meaning that every function saying 1 in a says 1 in c, and a ∧ c is their coordinatewise minimum. Write **1** for the column of all ones and **0** for the column of all zeros.
+
+**Theorem 8.1 (Oligarchy).** *Let Λ have a conditional link or an equivalence link. Then every resolution satisfying (U), (S), and (CR) is an oligarchy: there is a nonempty set S of functions such that, for every rational profile P and every case x,*
+
+ρ(P)(x) = 1 *if and only if* vᵢ(x) = 1 *for every* i ∈ S.
+
+*Proof.* Let f witness (S), and let F be the set of columns a with f(a) = 1. By (U), **1** ∈ F and **0** ∉ F. The proof shows that F is closed upward and under ∧, from which the oligarchic form follows.
+
+*Step 1: F is closed upward.* Suppose first that Λ has a conditional link at x, y, z, and let a ≤ c be columns with a ∈ F. Build a rational profile as follows: for each function i, choose an admissible vᵢ with (vᵢ(x), vᵢ(y), vᵢ(z)) = (aᵢ, 1, cᵢ). Such a vᵢ exists by richness, because the triple (aᵢ, 1, cᵢ) is never (1, 1, 0): if aᵢ = 1 then cᵢ = 1 since a ≤ c. The profile is rational, so by (CR) the map ρ(P) is admissible, and by (S) its values at x, y, z are f(a), f(**1**), f(c). Clause (i) of the link applied to ρ(P) gives: if f(a) = 1 and f(**1**) = 1 then f(c) = 1. Both antecedents hold, so c ∈ F.
+
+Suppose instead that Λ has an equivalence link at x, y, z, and let T ⊆ T′ with e(T) ∈ F. For i ∈ T choose vᵢ realising (1,1,1); for i ∈ T′ but not T choose vᵢ realising (0,1,0); for the remaining i choose vᵢ realising (0,0,0). The profile is rational, and ρ(P) has values f(e(T)), f(e(T′)), f(e(T)) at x, y, z. These must form one of the five admissible triples. Since f(e(T)) = 1, the triple has the form (1, f(e(T′)), 1), and the only admissible triple of that form is (1,1,1). So f(e(T′)) = 1, that is, e(T′) ∈ F.
+
+*Step 2: F is closed under ∧.* With a conditional link, let a, b ∈ F and choose for each i an admissible vᵢ realising (aᵢ, bᵢ, aᵢ ∧ bᵢ); the triple is never (1, 1, 0). By (CR) and clause (i), f(a) = 1 and f(b) = 1 give f(a ∧ b) = 1. With an equivalence link, let e(T), e(T′) ∈ F and choose vᵢ realising (1,1,1) for i in both T and T′, (1,0,0) for i in T only, (0,1,0) for i in T′ only, and (0,0,0) otherwise. Then ρ(P) has values 1, 1, f(e(T ∩ T′)) at x, y, z, and the only admissible triple beginning (1, 1) is (1,1,1). So e(T ∩ T′) ∈ F.
+
+*Step 3.* F is finite and closed under ∧, so its meet c* (the coordinatewise minimum of all its members) belongs to F, and c* ≠ **0** because **0** ∉ F. Let S be the set of i with c*ᵢ = 1; it is nonempty. If a ∈ F then a ≥ c* by the definition of a meet; if a ≥ c* then a ∈ F by Step 1. So F consists exactly of the columns with aᵢ = 1 for all i ∈ S, which is the claim. ∎
+
+The theorem says nothing about which S the community should choose, and it does not need to: the point is the shape of the option set. That shape is confirmed by the converse.
+
+**Proposition 8.2.** *If Λ is meet-closed, every oligarchy satisfies (U), (S), and (CR).*
+
+*Proof.* (U) and (S) are immediate from the form of the rule. For (CR), ρ(P) is the pointwise minimum of the admissible maps vᵢ for i ∈ S, and Λ is closed under pointwise minima. ∎
+
+**Corollary 8.3 (No compromise).** *Let Λ have a conditional or equivalence link and be meet-closed. Then the resolutions satisfying (U), (S), and (CR) are exactly the 2ⁿ − 1 oligarchies, one for each nonempty set S of functions. Consequently:*
+
+*(a) Every systematic resolution is at least as restrictive as each function in its governing set: the concept never applies in a divergence case in which some governing function withholds it. In the divergence region, systematic concepts narrow.*
+
+*(b) For n ≥ 3, no majority rule and no weighted-majority rule satisfies the three conditions. A resolution on which the concept applies whenever the functions favouring it carry more than half the weight is not an oligarchy, so it violates (CR) on some rational profile.*
+
+*(c) The option set is finite and discrete. Between two oligarchies there is no third that weights their governing functions intermediately; the only relations between them are inclusion and incomparability of the governing sets.*
+
+*Proof.* The characterisation is Theorem 8.1 with Proposition 8.2. (a) restates the oligarchic form. For (b), a weighted rule with positive weights and a threshold exceeding half the total accepts, for n ≥ 3, two columns whose meet it rejects: take any two distinct minimal winning coalitions, which exist since no single function carries more than half the weight when the rule is a genuine majority rule, or take the two coalitions consisting of all functions but one, whose meet omits two functions; in the simple-majority case with n = 3 the columns e({1,2}) and e({2,3}) are accepted and their meet e({2}) rejected. So its acceptance set is not closed under ∧ and by Theorem 8.1 the rule fails (CR). (c) is immediate from the characterisation. ∎
+
+The profile that witnesses (b) for simple majority is the discursive dilemma of Pettit (2001) with functions in place of judges, and it is worth seeing what it looks like for a concept. Take three functions of "same person" and three stages a, b, c. Let the first function identify all three, the second identify a with b only, and the third identify b with c only; each verdict map is an equivalence relation. Majority identifies a with b and b with c and does not identify a with c. The concept that results is not an equivalence relation. Nothing in the three functions was incoherent; the incoherence is produced by the rule.
+
+**Remark 8.4 (Dictatorship).** If Λ has, in addition, a *disjunctive link*, cases x, y, z such that every admissible v with v(z) = 1 has v(x) = 1 or v(y) = 1, with the corresponding richness, then the dual of the argument above shows that F is also closed under coordinatewise maximum, and a set of columns closed upward, under ∧, and under ∨, containing **1** and not **0**, is generated by a single coordinate: the resolution is a dictatorship by one function. This is the Arrovian case of Dietrich and List (2007). None of the four concepts studied in Chapter 4 has a natural disjunctive link, which is why conjunctive hybrid theories are stable options in those debates: the logical forms of identity, knowledge, and causation permit several functions to govern jointly, though not by vote.
+
+## 8.5 The five exits
+
+Theorem 8.1 has a contrapositive that does the philosophical work. Any position on a persistent aporia that is not an oligarchy must give up one of the theorem's premisses: it must abandon neutrality, independence, collective rationality, or unanimity, or it must follow a function that is not itself admissible. These five relaxations, together with the oligarchies themselves, give a classification of positions, and the claim of this section is that every standing position in the four debates of Chapter 4 falls under exactly one head. I take them in turn.
+
+**Oligarchies.** The monisms are dictatorships in the theorem's sense: knowledge-first epistemology (Williamson 2000) lets the licensing function govern; animalism (Olson 1997) lets the organismic function govern; source incompatibilism (Pereboom 2001) lets sourcehood govern; process theories of causation (Salmon 1984; Dowe 2000) let production govern. The conjunctive hybrids are oligarchies with larger governing sets: anti-luck virtue epistemology (Pritchard 2012) requires both safety and cognitive ability; Kane (1996) requires both leeway and ultimate sourcehood; a criterion of personal identity requiring both bodily and psychological continuity, of the kind considered and rejected by Parfit (1984, ch. 11), is a two-function oligarchy. These views keep every premiss of the theorem, and Corollary 8.3(a) explains a feature they share and are criticised for: they narrow the concept. The conjunctive views are accused of setting the bar too high, the monisms of ignoring what the other functions were for. Both accusations are correct descriptions of what any systematic resolution must do.
+
+**Exit 1: abandon neutrality.** A resolution may let the governing set vary with the case while remaining independent, so that the concept's verdict on a case depends only on the functions' verdicts on that case, but the rule for combining them depends on features of the case. Contextualism (Cohen 1988; DeRose 1992) is this exit for "knows": the standards the concept demands shift with the conversational context of the case. Subject-sensitive invariantism (Stanley 2005; Fantl and McGrath 2009) is the same exit with the shift located in the subject's stakes rather than the attributor's context. Contrastivism about causation (Schaffer 2005) is the exit for "causes": which considerations select the cause depends on the contrasts the case makes salient. These views can satisfy (U) and (CR); what they give up is the traditional demand for a single application condition.
+
+**Exit 2: abandon independence.** A resolution may make the concept's verdict on one case depend on the functions' verdicts on other cases. The clearest instance is Lewis's (1973) definition of causation as the *ancestral* of counterfactual dependence: c causes e when there is a chain of stepwise dependences from c to e. The dependence function on its own is not transitive; Lewis repairs it by taking its transitive closure, which makes the verdict on the pair (c, e) depend on verdicts on pairs involving intermediate events. Nozick's (1981, ch. 1) closest-continuer theory of personal identity is the same exit: whether a later stage is identical to an earlier one depends on what other candidate continuers exist, so the verdict on a pair depends on verdicts involving third parties. Narrative theories of identity (Schechtman 1996) make the verdict on a stage depend on its place in a whole life. All of these are *holistic repairs*: they take a function that violates the logical form and adjust its verdicts case by case until the form is restored, at the cost of independence.
+
+**Exit 3: abandon collective rationality.** A position may deny that the concept has the logical form the cluster attributed to it. This is the most consequential exit, because the logical-form thesis is a member of the aporetic cluster, and denying it is one of the recognised ways of resolving the aporia. Parfit's (1984) claim that identity is not what matters is, in the present terms, the claim that the concept our prudential concern tracks need not be an equivalence relation, so that (CR) with Λ the equivalence relations is not a constraint on it. Dretske's (1970) and Nozick's (1981, ch. 3) denial of closure for knowledge abandons (CR) with Λ the closure-respecting states. Hall's (2004) conclusion that there are two concepts of causation, one transitive and one not, is the same exit taken by splitting the agenda: each concept is given its own logical form, and the interconnection that made the single concept's aggregation problem impossible is removed. Disentanglement in the sense of Chapter 6 is, formally, this move, and §8.6 returns to it.
+
+**Exit 4: abandon unanimity.** A position may hold that the concept applies to nothing, or to nothing in the disputed domain, even where all its functions agree that it applies. The impossibilism of Strawson (1994), on which no one is ever morally responsible in the basic-desert sense, and the hard incompatibilism of Pereboom (2001, 2014) deny that "responsible" applies even in the cases of the coincidence range in which every function of the concept is served. Unger's (1975) scepticism does the same for "knows": since the certainty function is never satisfied, the concept applies to nothing, though every other function is satisfied in ordinary perceptual cases. Russell's (1913) proposal to eliminate "cause" from physics is the same exit for a practice. These are the error theories and eliminativisms, and the theorem locates them exactly: they are what one gets by refusing the coincidence range its authority.
+
+**Exit 5: follow an inadmissible function.** Finally, a position may adopt as the concept's extension the verdicts of a single function that does not itself satisfy the logical form, without independently rejecting the form. Parfit's Relation R and Nozick's tracking condition are such functions. In practice this exit coincides with Exit 3, because a theorist who follows an inadmissible function must either deny that the form was ever required (Exit 3) or accept that the concept violates it, which is the same thing said with regret. I list it separately because it identifies where, in the four debates, individual rationality fails, and because it shows why the domain of the theorem had to be restricted to rational profiles: the interesting impossibility is the one that arises even when every function behaves well.
+
+The classification is summarised in the following table.
+
+| Premiss kept or dropped | Form of the position | Examples |
+|---|---|---|
+| All kept (oligarchy, one function) | monism | knowledge-first; animalism; source incompatibilism; process theories of causation |
+| All kept (oligarchy, several functions) | conjunctive hybrid | anti-luck virtue epistemology; Kane's dual requirement; bodily-and-psychological criteria of identity |
+| Neutrality dropped | case-dependent standard | contextualism; subject-sensitive invariantism; contrastivism about causation |
+| Independence dropped | holistic repair | Lewis's ancestral of dependence; closest-continuer theory; narrative identity |
+| Collective rationality dropped | revision of logical form | Parfit on what matters; Dretske and Nozick on closure; Hall's two concepts |
+| Unanimity dropped | error theory or eliminativism | impossibilism; hard incompatibilism; Unger's scepticism; Russell on cause |
+| Rational domain left | following an unruly function | Relation R; tracking (in practice, as revision of logical form) |
+
+Two features of the table deserve comment. First, the row that is missing is the one the theorem excludes. There is no standing position in any of the four debates of the form "the concept applies when most of its functions apply", or "when the functions favouring it outweigh those against". Weighted-cluster analyses of this kind have been proposed in semantics, for proper names (Searle 1958) and for concepts whose logical form imposes no interconnections, and the theorem says nothing against them there. Where the concept has a link, the cluster proposal must violate its logical form on some profile, and the record shows the violations being found: disjunctive and cluster criteria of personal identity fail transitivity in fission and fusion cases, and disjunctive criteria of knowledge fail closure. The theorem explains why these counterexamples are always available and why, once found, they are decisive rather than merely awkward.
+
+Second, the table is a classification of positions by the *formal* commitment they make, not by their doctrinal content, and positions that are doctrinal opposites can occupy the same row. Knowledge-first epistemology and animalism have nothing in common except that each lets one function govern. This cross-cutting is itself evidence for the account: it shows that the debates share a structure that is invisible when each is studied on its own.
+
+## 8.6 What the theorem adds
+
+**To T3.** Chapter 5 explained the stability of the residual disagreement by the absence of anything that fixes the weights. The theorem adds that intermediate weights are not coherent options. The parties to a persistent dispute cannot meet halfway, because there is no halfway: a resolution that gives partial authority to each of two functions is a weighted rule, and weighted rules fail collective rationality. This sharpens the explanation of E5. A distribution of opinion over a continuum of weightings might be expected to drift towards a centre under argument; a distribution over the discrete lattice of governing sets has no centre to drift towards, and the observed stability of the free-will figures across a decade is what one should expect of a population choosing among discrete options on normative grounds.
+
+**To E1.** The account of Chapter 2 explained why the function-articulating theses of an aporetic cluster are individually compelling. It did not separately explain why the *logical-form* theses, that identity is one–one, that knowledge is closed, that causation is transitive, sit in the cluster alongside them. The theorem does: they are the interconnections without which the aggregation problem would have a solution. Remove the one–one-ness of identity and a majority rule over the continuities becomes admissible; remove closure and a disjunctive criterion of knowledge is consistent. The logical-form theses are in the cluster because they are what make compromise impossible, and this is why the most radical resolutions, Parfit's and Nozick's, attack exactly them.
+
+**To T4.** Chapter 6 identified disentanglement as the characteristic form of progress: the recognition that a concept's functions have come apart and their separation into distinct concepts. The theorem gives disentanglement a precise description and a rationale. Disentanglement is the splitting of the agenda: each function receives its own predicate, with its own extension, its own logical form, and its own coincidence range, and the demand that a single predicate aggregate them all is withdrawn. Of all the responses available, it is the only one that keeps every function's verdicts, every logical form, systematicity, and unanimity; what it gives up is the identity of the word. This is why disentanglement, rather than compromise, is what the history of these problems records. Compromise is unavailable, and disentanglement is the unique resolution that loses nothing but a lexical economy that, in the divergence region, was already a liability.
+
+**To the diagnosis of cluster concepts.** §3.6 observed that cluster theories of concepts predict silence or a weighted vote where the criteria come apart, and that the record instead shows structured conflict. The theorem supplies the reason. A weighted vote among criteria is a resolution that violates the concept's logical form whenever the concept has one, so the cluster theory's own prediction cannot be realised for the concepts at the centre of philosophy's persistent problems, and the conflict that replaces it is the conflict among the oligarchies and the five exits.
+
+## 8.7 Assumptions, limits, and a test
+
+The theorem depends on assumptions that should be marked.
+
+*Binary verdicts.* Functions were modelled as delivering a yes or a no on each case. A function may deliver a degree, and a concept may be graded. The binary model is the one that fits the aporiai of Chapter 4, in which the disputed verdicts are categorical, and the aggregation literature contains extensions to graded and probabilistic judgments whose translation to the present setting I leave open.
+
+*Finitely many functions, individuated by cases.* The case-partition criterion of §3.3 guarantees that distinct functions have distinct verdict maps, which is all the theorem needs. It does not need the functions to be exhaustively listed; the theorem holds for any finite set of functions with a link, and adding functions only enlarges the lattice of oligarchies.
+
+*Richness.* The link definitions require that the logical form be the only constraint on the three cases involved. This holds for the three paradigm forms, and it can fail for logical forms with further structure; in such cases the theorem's hypotheses must be checked, not assumed.
+
+*Silence on the choice.* The theorem does not say which oligarchy is right, nor which exit to take. That is the normative residue of T3, and the theorem leaves it exactly where Chapter 5 put it. What the theorem removes is the thought that the residue could be dissolved by splitting the difference.
+
+The theorem also yields a prediction that belongs with those of §7.9.
+
+**(P6)** No persistent conceptual aporia whose central concept has a conditional or equivalence link contains, among its standing positions, a weighted or majoritarian resolution: a view on which the concept applies in a divergence case if and only if at least k of its n functions apply, for some k with 1 < k < n, or on which functions carry weights and the concept applies when the weight in favour exceeds a threshold. The discovery of such a position that has survived scrutiny would show either that the concept lacks the link, in which case the theorem does not apply, or that the account has misidentified the concept's functions, or that the theorem is wrong; the last is not a live possibility, so the failure would be instructive. A second, weaker prediction: whenever a disjunctive criterion is proposed in one of these debates, the decisive objection to it will cite a logical-form thesis. Fission and fusion for identity, and closure failure for knowledge, are the confirming instances known to me; the prediction says there are no others of a different kind.
+
+These predictions are, like those of §7.9, checkable against the literature rather than against a laboratory, and a survey of the positions in a fifth and sixth aporia, truth and liberty being the natural candidates from §4.6, would be the next test. If the classification of §8.5 covers them without residue, the account has found a structure that runs through philosophy's persistent problems; if it does not, the exception will show where the account's notion of logical form is too narrow.
+
+# Chapter 9. Conclusion: What Philosophy Is For
+
+## 9.1 The argument in retrospect
 
 I began with Cephalus, who knew what justice was until Socrates showed him a case in which the two things his concept did came apart. I have argued that this is the form of every persistent problem in philosophy, and that seeing this changes what we should think about philosophy's disagreements, its progress, and its point.
 
-The argument had five steps. The concepts at the centre of philosophy's persistent problems are polyfunctional: each does several jobs in our practices, each job imposes its own application condition, and the conditions coincide across the range of cases from which the concept is learned (T1). The problems arise where the conditions come apart, and the thought experiment is the instrument by which such cases are constructed in advance of the world's producing them; this explains why each thesis of an aporetic cluster is compelling, why exotic cases are indispensable, and why the literature accumulates distinctions while the headline questions stand (T2). The positions in a persistent debate are prioritisations of functions, and what remains of the dispute once its factual and verbal layers are removed is a normative question about which function the shared concept should serve, a question that is rationally stable because nothing in the concept fixes the weights, the ends are plural, and no practice has authority over the rest (T3). Progress consists in locating divergence, articulating functions, disentangling them, and relocating the residue to the ethics of the relevant practice; this progress is cumulative, agreed across doctrinal divides, and constitutes understanding, and convergence on the headline is not to be expected (T4). The concept of progress is itself polyfunctional, and the metaphilosophical debate is a divergence case that the account predicts (T5).
+The argument had five steps. The concepts at the centre of philosophy's persistent problems are polyfunctional: each does several jobs in our practices, each job imposes its own application condition, and the conditions coincide across the range of cases from which the concept is learned (T1). The problems arise where the conditions come apart, and the thought experiment is the instrument by which such cases are constructed in advance of the world's producing them; this explains why each thesis of an aporetic cluster is compelling, why exotic cases are indispensable, and why the literature accumulates distinctions while the headline questions stand (T2). The positions in a persistent debate are prioritisations of functions, and what remains of the dispute once its factual and verbal layers are removed is a normative question about which function the shared concept should serve, a question that is rationally stable because nothing in the concept fixes the weights, the ends are plural, and no practice has authority over the rest (T3). Progress consists in locating divergence, articulating functions, disentangling them, and relocating the residue to the ethics of the relevant practice; this progress is cumulative, agreed across doctrinal divides, and constitutes understanding, and convergence on the headline is not to be expected (T4). The concept of progress is itself polyfunctional, and the metaphilosophical debate is a divergence case that the account predicts (T5). Chapter 8 then showed that the stability of T3 has a structural as well as a normative source: an aggregation theorem excludes every weighted or majoritarian way of combining a concept's functions once its logical form links verdicts across cases, so that the standing positions are oligarchies or one of five relaxations, and disentanglement is the unique resolution that loses nothing but a word.
 
 The account was defended abductively, as the best explanation of eight features of philosophy's problems, through four detailed case studies and several sketched ones, and against objections from triviality, realism, conventionalism, circularity, demotion, and the apparent counterexamples of philosophy's convergent successes. The objection from circularity it meets only in part, and §7.5 says which part. It was shown to have limits, and to make predictions that could fail.
 
-## 8.2 Consequences for method
+## 9.2 Consequences for method
 
 If the account is right, several things follow about how philosophy should be done.
 
@@ -937,19 +1089,19 @@ If the account is right, several things follow about how philosophy should be do
 
 **Pedagogy.** Persistent problems are usually taught as puzzles with a hidden answer that the student is invited to find. They should be taught as maps: here are the functions the concept serves, here are the cases that separate them, here are the costs of privileging each, and here is the question that remains once the map is drawn. A student who has learned that the compatibilism debate is, in its residue, a question about what blame is for has learned something true and has been placed in a position to think about it. A student who has learned that compatibilism is a thesis awaiting proof has been misled.
 
-## 8.3 Consequences for the discipline's self-image
+## 9.3 Consequences for the discipline's self-image
 
 Kant's image of the battlefield, and the scientistic envy that has accompanied analytic philosophy since Russell, both rest on a comparison: philosophy is measured against inquiries whose questions have a different structure, and found wanting. The account replaces the comparison with a description. Philosophy is the discipline that maps, and where it can, legislates for, the divergence regions of the concepts that several of our practices load at once. It does this in advance of need, by constructing the cases the world has not yet produced; it does it cumulatively, by individuating functions that stay individuated; and it does it without the authority to impose a weighting, because the practices it serves have no common sovereign. Its persistent disagreements are the shadow of that last fact, and they are the price of serving plural practices honestly rather than legislating for one.
 
 This is not a diminished self-image. It is, I have argued, the one that Socrates and Aristotle held, and it is the one the record of the discipline's actual achievements supports. The tradition's great results, from sense and reference to production and dependence, have the form the account describes, and the tradition's great unsettled questions have the form it predicts. A discipline that has done what philosophy has done does not need to apologise for not having done something its questions did not permit.
 
-## 8.4 Future work
+## 9.4 Future work
 
 The account opens several lines of inquiry, which I list in order of the confidence with which I expect them to be fruitful.
 
 **An empirical programme.** The decomposed survey and the salience manipulation of §7.9 are the most direct tests. A broader programme would measure the functional load of concepts, by counting the functions separable by cases and the practices they serve, and test the predicted correlation with the persistence and depth of the corresponding philosophical problems.
 
-**A formal model.** The notions of §3.5 admit of formalisation: a concept as a bundle of application conditions over a space of cases, with a correlation structure over the space reflecting the environment of acquisition; the coincidence range and divergence region as regions of that space; functional load as a property of the bundle. Such a model would allow the account's predictions to be stated precisely and would connect it with formal work on learning from correlated features.
+**A formal model.** Chapter 8 formalised one part of the account, the aggregation of a concept's functions over its divergence region, and drew a theorem from it. The rest of §3.5 admits of the same treatment: a concept as a bundle of application conditions over a space of cases, with a correlation structure over the space reflecting the environment of acquisition; the coincidence range and divergence region as regions of that space; functional load as a property of the bundle. The natural next steps are to extend the theorem to graded verdicts, where the aggregation literature has results to draw on, and to connect the correlation structure with formal work on learning from correlated features.
 
 **A historical programme.** The history of philosophy could be reread as the history of conceptual fission: Aristotle's *pollachōs legetai*, the scholastic distinctions, the early modern separation of primary from secondary qualities, the Kantian separation of the analytic from the synthetic and the a priori from the a posteriori, and the twentieth century's record. The account predicts that each major disentanglement will have been forced by a divergence case and will have been followed by a stable dispute over the residue, and the history could be checked against the prediction.
 
@@ -957,7 +1109,7 @@ The account opens several lines of inquiry, which I list in order of the confide
 
 **Metaethics.** The account is neutral on the status of the normative residue. Whether normative questions have objective answers determines whether philosophy's persistent disputes have them, and the account gives metaethics a new reason to matter: it is the theory of the residue.
 
-## 8.5 Coda
+## 9.5 Coda
 
 Socrates did not tell Cephalus what justice is. He showed him where his concept ran out, and thereby gave him a choice he had not known he had, and a reason to think about what he wanted justice for. Cephalus, the dialogue tells us, went off to attend to the sacrifices, leaving the argument to his son. It is easy to read this as the failure of the exchange. It is better read as its success. The old man had learned that a concept he had used without difficulty all his life had two voices, and that in the region where they disagreed the question was not what justice *is* but what it should be *for*. That is not a discovery about a word. It is the beginning of ethics.
 
@@ -971,6 +1123,8 @@ Alston, W. P. (1964). *Philosophy of Language*. Englewood Cliffs, NJ: Prentice-H
 Anscombe, G. E. M. (1971). *Causality and Determination: An Inaugural Lecture*. Cambridge: Cambridge University Press.
 
 Aristotle. *Metaphysics*; *Nicomachean Ethics*. In J. Barnes (ed.), *The Complete Works of Aristotle*, 2 vols. Princeton: Princeton University Press, 1984. Cited by Bekker page.
+
+Arrow, K. J. (1951). *Social Choice and Individual Values*. New York: Wiley.
 
 Austin, J. L. (1956). "Ifs and Cans." *Proceedings of the British Academy* 42: 109–132. Reprinted in *Philosophical Papers*, 3rd edn. Oxford: Oxford University Press, 1979, 205–232. Cited by the reprint's pagination.
 
@@ -998,9 +1152,9 @@ Bourget, D., and Chalmers, D. J. (2023). "Philosophers on Philosophy: The 2020 P
 
 Brennan, J. (2010). "Scepticism about Philosophy." *Ratio* 23(1): 1–16.
 
-Burgess, A., Cappelen, H., and Plunkett, D. (eds.) (2020). *Conceptual Engineering and Conceptual Ethics*. Oxford: Oxford University Press.
-
 Burgess, A., and Plunkett, D. (2013). "Conceptual Ethics I" and "Conceptual Ethics II." *Philosophy Compass* 8(12): 1091–1101 and 1102–1110.
+
+Burgess, A., Cappelen, H., and Plunkett, D. (eds.) (2020). *Conceptual Engineering and Conceptual Ethics*. Oxford: Oxford University Press.
 
 Butler, J. (1736). "Of Personal Identity." Dissertation I, appended to *The Analogy of Religion, Natural and Revealed*. London.
 
@@ -1054,9 +1208,15 @@ Deutsch, M. (2015). *The Myth of the Intuitive: Experimental Philosophy and Phil
 
 Dietrich, E. (2011). "There Is No Progress in Philosophy." *Essays in Philosophy* 12(2): 329–344.
 
+Dietrich, F., and List, C. (2007). "Arrow's Theorem in Judgment Aggregation." *Social Choice and Welfare* 29(1): 19–33.
+
+Dietrich, F., and List, C. (2008). "Judgment Aggregation without Full Rationality." *Social Choice and Welfare* 31(1): 15–39.
+
 Dowe, P. (2000). *Physical Causation*. Cambridge: Cambridge University Press.
 
 Dresser, R. (1995). "Dworkin on Dementia: Elegant Theory, Questionable Policy." *Hastings Center Report* 25(6): 32–38.
+
+Dretske, F. (1970). "Epistemic Operators." *Journal of Philosophy* 67(24): 1007–1023.
 
 Dworkin, R. (1986). *Law's Empire*. Cambridge, MA: Harvard University Press.
 
@@ -1091,6 +1251,8 @@ Frege, G. (1892). "Über Sinn und Bedeutung." *Zeitschrift für Philosophie und 
 Fricker, M. (2016). "What's the Point of Blame? A Paradigm Based Explanation." *Noûs* 50(1): 165–183.
 
 Gallie, W. B. (1956). "Essentially Contested Concepts." *Proceedings of the Aristotelian Society* 56: 167–198.
+
+Gärdenfors, P. (2006). "A Representation Theorem for Voting with Logical Consequences." *Economics and Philosophy* 22(2): 181–190.
 
 Geirhos, R., Jacobsen, J.-H., Michaelis, C., Zemel, R., Brendel, W., Bethge, M., and Wichmann, F. A. (2020). "Shortcut Learning in Deep Neural Networks." *Nature Machine Intelligence* 2(11): 665–673.
 
@@ -1168,6 +1330,8 @@ Kornblith, H. (2002). *Knowledge and Its Place in Nature*. Oxford: Clarendon Pre
 
 Kornblith, H. (2010). "Belief in the Face of Controversy." In R. Feldman and T. A. Warfield (eds.), *Disagreement*. Oxford: Oxford University Press, 29–52.
 
+Kornhauser, L. A., and Sager, L. G. (1986). "Unpacking the Court." *Yale Law Journal* 96(1): 82–117.
+
 Korsgaard, C. M. (1989). "Personal Identity and the Unity of Agency: A Kantian Response to Parfit." *Philosophy & Public Affairs* 18(2): 101–132.
 
 Kripke, S. A. (1975). "Outline of a Theory of Truth." *Journal of Philosophy* 72(19): 690–716.
@@ -1193,6 +1357,10 @@ Lewis, D. (1983). *Philosophical Papers, Volume I*. New York: Oxford University 
 Lewis, D. (1986). *Philosophical Papers, Volume II*. New York: Oxford University Press. Includes "Causal Explanation" and "Postscripts to 'Causation'".
 
 Lewis, D. (2000). "Causation as Influence." *Journal of Philosophy* 97(4): 182–197.
+
+List, C. (2012). "The Theory of Judgment Aggregation: An Introductory Review." *Synthese* 187(1): 179–207.
+
+List, C., and Pettit, P. (2002). "Aggregating Sets of Judgments: An Impossibility Result." *Economics and Philosophy* 18(1): 89–110.
 
 Locke, J. (1690). *An Essay concerning Human Understanding*. Ed. P. H. Nidditch. Oxford: Clarendon Press, 1975. Cited by book, chapter, and section.
 
@@ -1228,6 +1396,8 @@ Moore, G. E. (1912). *Ethics*. London: Williams & Norgate.
 
 Moore, M. S. (2009). *Causation and Responsibility: An Essay in Law, Morals, and Metaphysics*. Oxford: Oxford University Press.
 
+Morreau, M. (2015). "Theory Choice and Social Choice: Kuhn Vindicated." *Mind* 124(493): 239–262.
+
 Murray, D., and Nahmias, E. (2014). "Explaining Away Incompatibilist Intuitions." *Philosophy and Phenomenological Research* 88(2): 434–467.
 
 Nagel, J. (2012). "Intuitions and Experiments: A Defense of the Case Method in Epistemology." *Philosophy and Phenomenological Research* 85(3): 495–527.
@@ -1240,6 +1410,8 @@ Nagel, T. (1979). *Mortal Questions*. Cambridge: Cambridge University Press.
 
 Nahmias, E., Morris, S., Nadelhoffer, T., and Turner, J. (2005). "Surveying Freedom: Folk Intuitions about Free Will and Moral Responsibility." *Philosophical Psychology* 18(5): 561–584.
 
+Nehring, K., and Puppe, C. (2010). "Abstract Arrowian Aggregation." *Journal of Economic Theory* 145(2): 467–494.
+
 Nichols, S., and Knobe, J. (2007). "Moral Responsibility and Determinism: The Cognitive Science of Folk Intuitions." *Noûs* 41(4): 663–685.
 
 Niiniluoto, I. (2014). "Scientific Progress as Increasing Verisimilitude." *Studies in History and Philosophy of Science Part A* 46: 73–77.
@@ -1247,6 +1419,8 @@ Niiniluoto, I. (2014). "Scientific Progress as Increasing Verisimilitude." *Stud
 *Nix v. Hedden*, 149 U.S. 304 (1893).
 
 Nozick, R. (1981). *Philosophical Explanations*. Cambridge, MA: Harvard University Press.
+
+Okasha, S. (2011). "Theory Choice and Social Choice: Kuhn versus Arrow." *Mind* 120(477): 83–115.
 
 Olson, E. T. (1997). *The Human Animal: Personal Identity without Psychology*. New York: Oxford University Press.
 
@@ -1257,6 +1431,8 @@ Parfit, D. (1984). *Reasons and Persons*. Oxford: Clarendon Press.
 Pereboom, D. (2001). *Living without Free Will*. Cambridge: Cambridge University Press.
 
 Pereboom, D. (2014). *Free Will, Agency, and Meaning in Life*. Oxford: Oxford University Press.
+
+Pettit, P. (2001). "Deliberative Democracy and the Discursive Dilemma." *Philosophical Issues* 11: 268–299.
 
 Plato. *Republic*; *Theaetetus*. In J. M. Cooper (ed.), *Plato: Complete Works*. Indianapolis: Hackett, 1997. Cited by Stephanus page.
 
@@ -1341,6 +1517,8 @@ Sosa, E. (2007b). "Experimental Philosophy and Philosophical Intuition." *Philos
 Sosa, E. (2011). *Knowing Full Well*. Princeton: Princeton University Press.
 
 Stanley, J. (2005). *Knowledge and Practical Interests*. Oxford: Clarendon Press.
+
+Stegenga, J. (2013). "An Impossibility Theorem for Amalgamating Evidence." *Synthese* 190(12): 2391–2411.
 
 Stoljar, D. (2017). *Philosophical Progress: In Defence of a Reasonable Optimism*. Oxford: Oxford University Press.
 
