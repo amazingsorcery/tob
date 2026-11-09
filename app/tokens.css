@@ -1,43 +1,16 @@
-/* =============================================================================
- * DESIGN TOKENS
- * =============================================================================
+/* Design tokens. Imported by `app/globals.css`.
  *
- * Owner: ux-designer. Imported by `app/globals.css` (which owns motion classes,
- * base layer and the skip link — do not duplicate any of that here).
+ * Sections: 1 primitives, 2 dark palette (default, on `:root`), 3 light palette
+ * (`[data-theme="light"]`), 4 permitted foreground/surface pairings, 5 geometry and
+ * motion, 6 Tailwind `@theme` exposure, 7 token-level base rules.
  *
- * Contract:  docs/design-token-contract.md   (token NAMES)
- * Palette:   docs/brand/colour.md            (brand-strategist-owned; VALUES + ratios)
- * Rationale: docs/design/tokens.md           (this file, explained; mapping table)
- *
- * STRUCTURE
- *   1. Primitives         — raw values, no meaning, theme-invariant. Never used by a
- *                           component; only semantic tokens below may reference them.
- *   2. Semantic — dark    — on bare `:root`. Dark is the default theme.
- *   3. Semantic — light   — on `[data-theme="light"]`. Same tokens, same bar.
- *   4. Permitted pairings — the foreground × surface matrix. An unlisted pair is a
- *                           question, not a choice.
- *   5. Geometry / motion  — theme-invariant. Defined once; inherited by both themes.
- *   6. @theme blocks      — expose the above to Tailwind v4 utilities.
- *
- * RULES
- *   - Every palette token is defined in BOTH themes. A token in only one is a bug.
- *   - No component may hardcode a colour. If a colour is missing, it is added here
- *     (and to the contract) first.
- *   - Colour is never the sole carrier of meaning. See the confidence ramp in §2.
- *   - Contrast ratios in the comments were computed with WCAG 2.1 relative luminance,
- *     carried over from docs/brand/colour.md. They are not estimates.
- *   - **A pair that is not in the §4 matrix has not been measured.** Do not use it; add
- *     it there, with its computed ratio in both themes, first. Three shipped pages
- *     independently landed on `--muted-foreground` over an alpha-tinted callout, a pair
- *     nothing in this file described, and it measured 4.45:1 (audit QV-06).
- *   - **Opacity is not a colour strategy** (brand/colour.md §8 rule 5). `opacity-*` and
- *     `/NN` alpha on an ink produce a composite that no token describes and no review of
- *     this file can catch. The one exception is a genuinely inactive control — see §4.
- * ========================================================================== */
+ * - Every palette token is defined in both themes.
+ * - Components never hardcode colours; add a token here instead.
+ * - Ratios are WCAG 2.1 relative-luminance contrast, checked by `tokens.contrast.test.ts`.
+ * - Only use pairs listed in §4. Don't dim ink with opacity or alpha (see §4.5).
+ */
 
-/* -----------------------------------------------------------------------------
- * 1. PRIMITIVES — theme-invariant. Do not reference these from a component.
- * -------------------------------------------------------------------------- */
+/* 1. Primitives. Theme-invariant; only semantic tokens reference these. */
 
 :root {
   /* Slate — cool neutral */
@@ -51,11 +24,7 @@
   --slate-500: #586e86;
   --slate-450: #74899e;
   --slate-400: #8296ab;
-  /* Currently unreferenced. It was the light `--muted-foreground` until audit QV-06:
-     5.11:1 on the page is AA in isolation, but only 4.45:1 once a callout tints the
-     surface underneath it. Kept because docs/brand/colour.md §2 defines the palette and
-     this file does not get to delete from it. Do not reintroduce it as an ink without
-     re-running the §4 matrix. */
+  /* Unreferenced. Only 4.45:1 as an ink on a tinted callout; re-run §4 before using it. */
   --slate-350: #5a6c81;
   --slate-300: #a8b9c9;
   --slate-100: #e5ecf3;
@@ -131,17 +100,13 @@
 
   --muted: var(--slate-750); /* #1F2937 — recessed fills, skeletons, muted chips */
   /* 6.31:1 on bg · 5.86:1 on card · 5.34:1 on popover · 4.82:1 on muted — AA.
-     NOT permitted on `--accent` (4.02:1) — the full row is in §4. */
+     Not permitted on `--accent` (4.02:1); see §4. */
   --muted-foreground: var(--slate-400);
 
-  /* Additive (not in the contract): the third text step. `--foreground` is primary,
-     `--muted-foreground` is tertiary; this is the secondary step brand/colour.md §3
-     specifies and the contract omitted. Body copy under a heading, card descriptions
-     that are not de-emphasised, table cell values. */
+  /* Secondary text step, between `--foreground` and `--muted-foreground`. */
   --foreground-secondary: var(--slate-300); /* 9.56:1 on bg · 8.88:1 on card — AAA */
 
-  /* Additive: non-text ornament ONLY — rules, dividers, disabled icon strokes.
-     Capped at 3.65:1. It must never carry a word a user needs to read. */
+  /* Non-text ornament only (rules, dividers, icon strokes). 3.65:1; never for words. */
   --foreground-faint: var(--slate-500);
 
   --border: var(--slate-750); /* 1.31:1 — decorative dividers only, by design */
@@ -152,10 +117,9 @@
 
   --primary: var(--azure-300); /* brand accent */
   --primary-foreground: var(--slate-950); /* 10.61:1 on primary — AAA */
-  /* Additive: the measured hover fill. Prefer this over `bg-primary/90`, whose
-     composite ratio is unmeasured by definition. See docs/design/tokens.md §7. */
+  /* Measured hover fill; use instead of `bg-primary/90`. */
   --primary-hover: var(--azure-200); /* 12.93:1 with --primary-foreground */
-  /* Additive: non-text fills only — progress bars, chart strokes, selected-row rails. */
+  /* Non-text fills only (progress bars, chart strokes, selected-row rails). */
   --primary-solid: var(--azure-500);
 
   --secondary: var(--slate-600);
@@ -181,19 +145,13 @@
   --info-surface: var(--azure-900); /* 8.05:1 with --info */
 
   /* --- Confidence ramp ------------------------------------------------------
-   * A monotonic luminance staircase: verified (Y 75.1%) > high (47.2%) >
-   * medium (33.9%) > review (23.0%). Ordinal data on an ordered channel, so the
-   * order survives every colour vision deficiency.
-   *
-   * NEVER render this value as colour alone. Every chip carries all three of:
-   *   count  — a four-segment meter (4/3/2/1 filled)
-   *   shape  — `review` is the only dashed border and the only filled chip
-   *   word   — "verified" / "high" / "medium" / "needs review"
-   * See docs/design/components.md → ConfidenceChip.
+   * Monotonic luminance: verified (Y 75.1%) > high (47.2%) > medium (33.9%) >
+   * review (23.0%), so the order survives colour vision deficiencies. Never use
+   * colour alone; chips also carry a meter count, border style and a word.
    *
    *   --confidence-*            ink: label, border, filled meter segments
-   *   --confidence-*-foreground ink that sits ON a solid --confidence-* fill
-   *   --confidence-*-surface    tinted chip background (v1 uses `review` only)
+   *   --confidence-*-foreground ink on a solid --confidence-* fill
+   *   --confidence-*-surface    tinted chip background
    * ------------------------------------------------------------------------ */
 
   --confidence-verified: var(--mint-200); /* 14.65:1 on bg · 13.61:1 on card — AAA */
@@ -212,19 +170,14 @@
   --confidence-review-foreground: var(--slate-950); /* 5.35:1 — AA */
   --confidence-review-surface: var(--clay-900); /* 4.53:1 with the ink */
 
-  /* Unfilled meter segments. Same value as --input; a separate token so the meter is
-     not coupled to form-control styling. 3.65:1 against the page — the empty segments
-     must be countable, which makes this a 1.4.11 component boundary, not decoration. */
+  /* Unfilled meter segments. Same value as --input but decoupled from form styling.
+     3.65:1: empty segments must be countable (WCAG 1.4.11). */
   --confidence-track: var(--slate-500);
 
-  /* --- Scrim ----------------------------------------------------------------
-   * Additive. The dimming layer behind a modal. Use `bg-overlay-scrim`, never a
-   * hardcoded `bg-black/70`. */
+  /* Modal scrim. Use `bg-overlay-scrim`, not `bg-black/70`. */
   --overlay-scrim: rgb(2 4 6 / 0.72);
 
-  /* --- Elevation ------------------------------------------------------------
-   * On dark surfaces elevation reads as lightness, not as shadow, so these are
-   * restrained; the surface ladder does the work. */
+  /* Elevation. Kept subtle in dark; the surface ladder does most of the work. */
   --elevation-1: 0 1px 2px 0 rgb(0 0 0 / 0.5);
   --elevation-2:
     0 4px 12px -2px rgb(0 0 0 / 0.6), 0 2px 4px -2px rgb(0 0 0 / 0.5);
@@ -252,17 +205,9 @@
   --popover-foreground: var(--slate-900); /* 19.21:1 — AAA */
 
   --muted: var(--paper-100); /* #EEF2F6 */
-  /* CHANGED (audit QV-06): was `--slate-350` (#5A6C81). That value is AA on the three
-     surfaces it was measured against — 5.11:1 on bg, 5.39:1 on card, 4.79:1 on muted —
-     and fails on every surface nobody measured: 4.71:1 on `--info-surface`, 4.63:1 on
-     `--destructive-surface`, 4.45:1 on the alpha tint `alert.tsx` actually renders. A
-     token whose safety depends on which surfaces got written down is not safe.
-     `--slate-600` is the next primitive down (colour.md §2; no new hue) and clears 4.5:1
-     on EVERY surface in the §4 matrix, worst case 6.17:1.
-     7.37:1 on bg · 7.78:1 on card and popover · 6.91:1 on muted · 6.53:1 on accent — AAA.
-     It also puts light in step with dark, where muted ink is 6.31:1 rather than 5.11:1;
-     the light theme was the lax one. Ink-to-ink separation from `--foreground-secondary`
-     is 1.57:1, marginally wider than dark's 1.51:1, so the three-step ramp survives. */
+  /* Clears 4.5:1 on every surface in §4 (worst case 6.17:1).
+     7.37:1 on bg · 7.78:1 on card and popover · 6.91:1 on muted · 6.53:1 on accent.
+     1.57:1 separation from `--foreground-secondary` (dark: 1.51:1). */
   --muted-foreground: var(--slate-600);
 
   --foreground-secondary: var(--slate-700); /* 11.61:1 on bg · 12.25:1 on card — AAA */
@@ -299,18 +244,13 @@
   --info-foreground: var(--paper-0); /* 5.47:1 — AA */
   --info-surface: var(--azure-050); /* 4.78:1 with --info */
 
-  /* Confidence ramp — light. Still monotonic, inverted: certainty now carries the
-     DARKEST ink, so visual weight still tracks epistemic weight. */
+  /* Confidence ramp, inverted for light: higher confidence gets the darker ink. */
   --confidence-verified: var(--mint-700); /* 9.54:1 on bg · 10.07:1 on card — AAA */
   --confidence-verified-foreground: var(--paper-0); /* 10.07:1 — AAA */
   --confidence-verified-surface: var(--mint-050); /* 8.86:1 with the ink */
 
-  /* Same value as `--muted-foreground` in this theme, which is intended and not a merge:
-     colour.md §6 specifies `high` as "the neutral grey — a default state spends no
-     colour", and the neutral grey in light is now `--slate-600`. Nothing is lost, because
-     the chip never carries its value in colour: meter count, border style, icon and word
-     all still differ (§2, confidence ramp). Two names because the roles are independent —
-     restyling body copy must not restyle a confidence claim. */
+  /* Same value as `--muted-foreground` here on purpose (`high` is the neutral grey);
+     kept as a separate token so the two roles can change independently. */
   --confidence-high: var(--slate-600); /* 7.37:1 on bg · 7.78:1 on card — AAA */
   --confidence-high-foreground: var(--paper-0); /* 7.78:1 — AAA */
   --confidence-high-surface: var(--paper-100); /* 6.91:1 with the ink */
@@ -337,17 +277,10 @@
 /* -----------------------------------------------------------------------------
  * 4. PERMITTED PAIRINGS — the foreground × surface matrix
  *
- * WHY THIS EXISTS. Until audit QV-06 this file listed tokens and recorded a ratio for
- * each pairing somebody happened to think of. That is a list of *anticipated* pairs, and
- * it is silent about the rest — so `/legal/terms`, `/live/cameras` and `/methodology`
- * each independently put `--muted-foreground` on a tinted callout, measured 4.45:1, and
- * nothing anywhere said no. A documented ratio nobody measured is worse than none,
- * because it is believed. Below is the whole grid instead: every pair a component may
- * use, with both themes' computed ratio, and every pair it may not.
- *
- * READ IT AS: `dark / light`. Computed with WCAG 2.1 relative luminance
- * (0.2126R + 0.7152G + 0.0722B on linearised sRGB), (L1+0.05)/(L2+0.05), two decimals.
- * Text target 4.5:1 (1.4.3 AA). Non-text target 3:1 (1.4.11).
+ * Every pair a component may use, and the ones it may not. Values are `dark / light`,
+ * WCAG 2.1 relative luminance (0.2126R + 0.7152G + 0.0722B on linearised sRGB),
+ * (L1+0.05)/(L2+0.05), two decimals. Text target 4.5:1 (1.4.3 AA); non-text 3:1 (1.4.11).
+ * `app/tokens.contrast.test.ts` parses and verifies these rows.
  *
  * 4.1 THE TEXT RAMP ON EVERY TEXT-BEARING SURFACE — all ≥ 4.5:1 in both themes
  *
@@ -366,13 +299,11 @@
  *   --confidence-medium-surface   13.29 / 17.12   7.88 / 10.92            5.20 / 6.93
  *   --confidence-review-surface   14.28 / 17.98   8.46 / 11.46            5.59 / 7.28
  *
- * 4.2 ALPHA-TINTED SURFACES — measured because they ship, not because they are approved
+ * 4.2 ALPHA-TINTED SURFACES
  *
- * `components/ui/alert.tsx` tints with `bg-<intent>/10` rather than the `-surface` token.
- * The composite has no name, so §4.1 could not describe it; these are the exact rendered
- * values. THE MIGRATION TO `--*-surface` IS STILL WANTED (see docs/design/tokens.md §7):
- * an alpha tint that lands on a `--card` differs from one on a `--background`, which is
- * two unnamed surfaces per intent instead of one named one.
+ * `components/ui/alert.tsx` tints with `bg-<intent>/10` instead of a `-surface` token.
+ * These are the exact composites. Migrating to `--*-surface` would be better: the tint
+ * differs depending on whether it lands on `--card` or `--background`.
  *
  *   composite                          rendered D / L      --foreground   --fg-secondary  --muted-fg
  *   bg-info/10 on --background         #16212B / #E1EBF2   13.70 / 15.88   8.12 / 10.13   5.36 /  6.43
@@ -384,12 +315,8 @@
  *   bg-destructive/10 on --background  #231D21 / #F0E5E5   13.89 / 15.59   8.23 /  9.94   5.44 /  6.31
  *   bg-destructive/10 on --card        #29252C / #F7EAE9   12.63 / 16.37   7.49 / 10.44   4.95 /  6.63
  *
- * The light `--muted-fg` column is where QV-06 lived: it read 4.46 / 4.49 / 4.49 / 4.37
- * before §3 changed the token.
- *
  * 4.3 NON-TEXT — `--input`, `--foreground-faint`, `--confidence-track` (one primitive per
- * theme, three roles). Target 3:1. These carry control boundaries and countable meter
- * segments, never a word.
+ * theme, three roles). Target 3:1. Control boundaries and meter segments, never words.
  *
  *   surface                  ratio D / L     verdict
  *   --background             3.65 / 3.42     permitted
@@ -400,76 +327,44 @@
  *   --secondary              1.48 / 2.86     NOT permitted in either theme
  *   any --*-surface tint     2.89–3.35 / 3.10–3.38   NOT permitted in dark
  *
- * A bordered control, a checkbox or a confidence meter therefore sits on `--background`,
- * `--card` or `--popover`. Putting one inside a tinted callout needs a new token, not a
- * judgement call. No shipped component does; this row exists so the next one cannot.
+ * Bordered controls and meters therefore sit on `--background`, `--card` or `--popover`.
  *
- * 4.4 FORBIDDEN PAIRS — measured, and listed so the absence is loud
+ * 4.4 FORBIDDEN PAIRS
  *
  *   pair                                        D / L         why not
  *   --muted-foreground on --accent              4.02 / 6.53   dark fails 1.4.3. `--accent`
- *       is the hover/selected fill, so this is the pair a hovered row reaches. Use
- *       `--foreground-secondary` (6.09 / 10.28). `--accent` cannot be darkened without
- *       making it invisible on `--popover` (see docs/design/tokens.md §2), and no
- *       primitive between `--slate-400` and `--slate-300` exists, so the muted step
- *       genuinely does not exist on this surface. NO SHIPPED VIOLATIONS — the one that
- *       existed, components/directory/search-field.tsx:249, was fixed in the same commit
- *       that wrote this section, and this line said otherwise until QA re-read it (QV-27).
- *       A matrix that names a violation which no longer exists is the same failure as one
- *       that misses a violation which does: both are the document disagreeing with the code.
+ *       is the hover/selected fill; use `--foreground-secondary` (6.09 / 10.28). It can't
+ *       be darkened without vanishing on `--popover`, and there's no primitive between
+ *       `--slate-400` and `--slate-300`.
  *   --foreground-secondary on --secondary       3.87 / 9.71   dark fails.
  *   --muted-foreground on --secondary           2.56 / 6.17   dark fails badly.
- *       `--secondary` is a component fill — badge, button, four file-upload buttons — and
- *       all six call sites pair it with `--secondary-foreground` or inherited
- *       `--foreground`, both 6.53 / 15.23. It is therefore absent from 4.1 by decision, and
- *       `app/tokens.contrast.test.ts` now REQUIRES that decision: every semantic token must
- *       appear in 4.1 or be classified as a non-text surface. It was found missing from
- *       both on that test's first run.
- *       `--secondary` is a FILL, not a surface: the only ink permitted on it is
- *       `--secondary-foreground` (6.53 / 15.23). Same for `--primary`, `--destructive`,
- *       `--success`, `--warning`, `--info` and every `--confidence-*` — each takes only
- *       its own `-foreground`, and those ratios are in §2 and §3.
+ *       `--secondary` is a fill (badge, button); the only ink on it is
+ *       `--secondary-foreground` (6.53 / 15.23). Likewise `--primary`, `--destructive`,
+ *       `--success`, `--warning`, `--info` and `--confidence-*` take only their own
+ *       `-foreground` (ratios in §2 and §3).
  *   --success as text on bg-success/10          9.83 / 4.32   light fails.
  *   --warning as text on bg-warning/10          10.19 / 4.23  light fails.
  *   --primary as text on bg-destructive/10      8.75 / 4.44   light fails. A link inside
  *       a destructive callout must be `--foreground` with an underline.
- *       Status hues on a tint of themselves are for the ICON and the border only, where
- *       the 3:1 non-text bar applies and every one of them clears it. As text they are
- *       AA in dark and sub-AA in light, which is precisely the asymmetry that made four
- *       of QV-06's five failures light-theme ones.
+ *       Status hues on their own tint are for icons and borders only (3:1 bar).
  *
- * 4.5 OPACITY — when it is allowed, which is almost never
+ * 4.5 OPACITY
  *
- * Alpha on an ink is invisible to every check that reads tokens, including this file:
- * `--foreground` is 18.20:1 and `opacity-40` renders it at 2.64:1. Both statements are
- * true at once, which is why the rule has to be structural rather than a review habit.
+ * Alpha on ink isn't visible to token-level checks: `--foreground` is 18.20:1 but
+ * `opacity-40` renders it at 2.64:1.
  *
- *   ALLOWED   `disabled:opacity-50` on a control that is GENUINELY inactive — a native
- *             element carrying the `disabled` attribute, or `aria-disabled="true"` and
- *             removed from the tab order. WCAG 1.4.3 exempts "text that is part of an
- *             inactive user interface component", and axe skips them. This is what
- *             components/ui/{button,input,checkbox,select,tabs,dropdown-menu}.tsx do.
- *   ALLOWED   `opacity-70` on a decorative icon that duplicates an adjacent word, IF the
- *             composite still clears 3:1. On `--foreground` ink it does (8.19 / 7.09);
- *             on `--muted-foreground` ink it is 3.52 / 3.66 — the floor, no margin.
- *   FORBIDDEN `opacity-60` or lower on anything containing a word. On muted ink that is
- *             2.98 / 2.85. Two shipped instances, both flagged in
- *             docs/design/tokens.md §7: breadcrumb.tsx:45, filter-controls.tsx:380.
- *   FORBIDDEN Any alpha on a <span> or <div> styled to look inactive. Markup that is not
- *             a control cannot be an "inactive user interface component", so the
- *             exemption does not reach it and it owes the full 4.5:1. This was QV-06's
- *             other half: components/directory/pagination.tsx now renders its unavailable
- *             end in `--muted-foreground` (6.31 / 7.37) with a `--border` outline.
- *   FORBIDDEN `/NN` alpha as a tint under text. Use the `-surface` tokens. One shipped
- *             instance beyond alert.tsx: markdown.tsx:23 `text-foreground/90`
- *             (13.09 / 14.37 — passes, still unmeasurable by name).
+ *   ALLOWED   `disabled:opacity-50` on a genuinely inactive control (native `disabled`,
+ *             or `aria-disabled="true"` and out of the tab order). WCAG 1.4.3 exempts it.
+ *   ALLOWED   `opacity-70` on a decorative icon next to a word, if it still clears 3:1:
+ *             8.19 / 7.09 on `--foreground`, 3.52 / 3.66 on `--muted-foreground`.
+ *   FORBIDDEN `opacity-60` or lower on anything with text (2.98 / 2.85 on muted ink).
+ *   FORBIDDEN Any alpha on a <span> or <div> styled to look inactive. It isn't a control,
+ *             so the exemption doesn't apply and it needs 4.5:1.
+ *   FORBIDDEN `/NN` alpha as a tint under text. Use the `-surface` tokens.
  * -------------------------------------------------------------------------- */
 
 /* -----------------------------------------------------------------------------
- * 5. GEOMETRY, MOTION, LAYERING — theme-invariant.
- *
- * Defined once on `:root`; both themes inherit them. Only the palette is
- * re-declared under `[data-theme="light"]`.
+ * 5. GEOMETRY, MOTION, LAYERING — theme-invariant, inherited by both themes.
  * -------------------------------------------------------------------------- */
 
 :root {
@@ -481,9 +376,8 @@
   --duration-base: 180ms;
   --duration-slow: 280ms;
 
-  /* The z-index ladder. Tailwind v4 has no themeable z-index namespace, so these
-     stay plain custom properties, consumed as `z-[var(--z-modal)]`.
-     There is no other layering mechanism in this product: no ad-hoc `z-[9999]`. */
+  /* z-index ladder, used as `z-[var(--z-modal)]` (Tailwind v4 has no z-index theme
+     namespace). Don't use ad-hoc values like `z-[9999]`. */
   --z-sticky: 30; /* sticky header, sticky filter bar, sticky step nav */
   --z-dropdown: 40; /* dropdown menus, comboboxes, popovers, tooltips */
   --z-overlay: 50; /* modal scrim */
@@ -491,10 +385,8 @@
   --z-toast: 70; /* toasts and the skip link — always on top */
 }
 
-/* Every duration collapses to 0ms when the user asks for reduced motion. This is a
-   correctness requirement: `globals.css` also neutralises animations, and both layers
-   are deliberate — a future component that reads --duration-base directly must also
-   get 0ms without remembering to add a media query. */
+/* Reduced motion: durations go to 0ms so anything reading them directly is covered too
+   (`globals.css` separately disables animations). */
 @media (prefers-reduced-motion: reduce) {
   :root {
     --duration-fast: 0ms;
@@ -506,14 +398,9 @@
 /* -----------------------------------------------------------------------------
  * 6. TAILWIND v4 THEME EXPOSURE
  *
- * `@theme inline` — the utility gets `var(--token)` verbatim, so switching
- * `data-theme` on <html> re-resolves every utility. Used for anything that changes
- * between themes.
- *
- * `@theme` (not inline) — used where the Tailwind namespace key IS the token name
- * the rest of the app consumes (`--font-*`, `--ease-*`). Writing those as
- * `inline` would produce `--ease-out: var(--ease-out)`, a self-reference that
- * resolves to nothing.
+ * `@theme inline` emits `var(--token)` verbatim, so themed values re-resolve when
+ * `data-theme` changes. Plain `@theme` is for keys that are themselves the token name
+ * (`--font-*`, `--ease-*`); inline would make them self-referencing.
  * -------------------------------------------------------------------------- */
 
 @theme inline {
@@ -570,8 +457,7 @@
   --color-confidence-review-surface: var(--confidence-review-surface);
   --color-confidence-track: var(--confidence-track);
 
-  /* Radii — `rounded-lg` is the card, `rounded-md` the button, `rounded-sm` the
-     menu item. Bare `rounded` resolves to --radius-sm in Tailwind v4. */
+  /* Radii: card `rounded-lg`, button `rounded-md`, menu item `rounded-sm`. */
   --radius-xs: calc(var(--radius) - 6px); /* 2px */
   --radius-sm: calc(var(--radius) - 4px); /* 4px */
   --radius-md: calc(var(--radius) - 2px); /* 6px */
@@ -586,18 +472,8 @@
 }
 
 @theme {
-  /* --- Type ---------------------------------------------------------------
-   * The `-loaded` variables are generated by next/font in `app/layout.tsx`:
-   *
-   *   IBM_Plex_Sans({ subsets:['latin'], weight:['400','600'], display:'swap',
-   *                   variable:'--font-sans-loaded' })
-   *   IBM_Plex_Mono({ subsets:['latin'], weight:['400'],       display:'swap',
-   *                   variable:'--font-mono-loaded' })
-   *
-   * The `-loaded` suffix is required: next/font must NOT be given `variable:
-   * '--font-sans'`, because that is this token, and the token would then reference
-   * itself and lose its fallback stack. See docs/design/HANDOFF.md §2.
-   * ---------------------------------------------------------------------- */
+  /* `--font-*-loaded` come from next/font in `app/layout.tsx`. The suffix avoids the
+     token referencing itself and losing its fallback stack. */
   --font-sans:
     var(--font-sans-loaded), ui-sans-serif, system-ui, -apple-system, "Segoe UI",
     Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji",
@@ -607,30 +483,16 @@
     var(--font-mono-loaded), ui-monospace, SFMono-Regular, "SF Mono", Menlo,
     Consolas, "DejaVu Sans Mono", "Liberation Mono", "Courier New", monospace;
 
-  /* ADDED for the reading surface. This product is three dissertations — 47 to 179
-     minutes of continuous prose each — and a serif is the right body face for that.
-     It is not decoration: it also has to sit beside KaTeX, whose faces are
-     Computer Modern derivatives, without either looking pasted in. The optical
-     size match is made in `app/reading.css` (.prose .katex), not here.
-
-       Source_Serif_4({ subsets:['latin'], display:'swap',
-                        variable:'--font-serif-loaded' })
-
-     The sans is unchanged and still carries every piece of interface chrome:
-     header, navigation, metadata, buttons. Prose is the serif; the product is not. */
+  /* Serif for long-form prose; sits alongside KaTeX (size matched in `app/reading.css`).
+     Interface chrome stays in the sans. */
   --font-serif:
     var(--font-serif-loaded), ui-serif, Georgia, Cambria, "Times New Roman",
     Times, serif;
 
-  /* Titles and chapter headings are prose, not interface, so display type is now the
-     serif. (It was the sans at 600 when the only display type in the product was a
-     dashboard heading; there is no dashboard here.) Restated as a token rather than
-     applied per-component so the next face change stays a one-line edit. */
+  /* Titles and chapter headings use the serif. */
   --font-display: var(--font-serif);
 
-  /* Type scale. Body never below 14px, mono never below 13px (type.md §7).
-     `--text-xs` is 13px, not Tailwind's default 12px, so that nothing in the
-     product — badge, chip label, dropdown group label — renders below 13px. */
+  /* Type scale. `--text-xs` is 13px (not Tailwind's 12px) so nothing renders below 13px. */
   --text-xs: 0.8125rem; /* 13px */
   --text-xs--line-height: 1.125rem; /* 18px */
   --text-sm: 0.875rem; /* 14px */
@@ -648,49 +510,31 @@
   --text-4xl: 2.25rem; /* 36px */
   --text-4xl--line-height: 2.5rem; /* 40px */
 
-  /* Only Sans 400 and 600 ship. `font-medium` (500) and `font-bold` (700) are
-     remapped to 600 so the browser never synthesises a weight it does not have —
-     synthetic emboldening thickens strokes unevenly and is exactly what breaks
-     character disambiguation in a domain or a hash. */
+  /* Only 400 and 600 ship; 500 and 700 map to 600 to avoid synthetic bold. */
   --font-weight-normal: 400;
   --font-weight-medium: 600;
   --font-weight-semibold: 600;
   --font-weight-bold: 600;
 
-  /* Spacing base. 4px, so `p-1` = 4px and the whole dynamic scale is a multiple. */
+  /* 4px spacing base. */
   --spacing: 0.25rem;
 
-  /* Easing. Consumed by name in `app/globals.css` (.dm-fade / .dm-pop) and as the
-     `ease-out` / `ease-in-out` utilities. */
+  /* Used by `app/globals.css` (.dm-fade / .dm-pop) and the `ease-*` utilities. */
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
 
-  /* Tailwind's bare `transition` / `transition-colors` utilities read these. Pointing
-     them at our motion tokens means a `hover:bg-accent` on a button uses the same
-     curve as a dialog, and inherits the 0ms reduced-motion collapse for free. */
+  /* Default `transition` utilities use the motion tokens (and their reduced-motion 0ms). */
   --default-transition-duration: var(--duration-fast);
   --default-transition-timing-function: var(--ease-out);
 }
 
 /* -----------------------------------------------------------------------------
- * 7. TOKEN-LEVEL BASE RULES
- *
- * Only rules that are inseparable from a token live here. Everything else is in
- * `app/globals.css`, which the maintainer owns.
+ * 7. TOKEN-LEVEL BASE RULES. Everything else lives in `app/globals.css`.
  * -------------------------------------------------------------------------- */
 
 @layer base {
-  /*
-   * Required behaviour for the monospace face (docs/brand/type.md §5). These are
-   * correctness rules, not preferences:
-   *   - ligatures off: a hash must render as the characters it contains, on every
-   *     machine, including when a fallback face with code ligatures is in use.
-   *   - tabular numerals: dates and counts must align in a column or the directory
-   *     table cannot be scanned.
-   *   - 0.92em: mono sets optically larger than sans at the same px.
-   *   - overflow-wrap: a 64-character hash must not force horizontal page scroll
-   *     on a 375px screen.
-   */
+  /* Mono: no ligatures (hashes render literally), tabular numerals, and wrap long
+     strings so they can't force horizontal scroll on narrow screens. */
   .font-mono,
   code,
   kbd,
@@ -701,22 +545,13 @@
     overflow-wrap: anywhere;
   }
 
-  /*
-   * The 0.92em optical correction is scoped to INLINE mono inside prose, where the
-   * size is inherited from the surrounding sans and no size utility is in play.
-   * It is deliberately NOT applied to `.font-mono`: a `text-sm font-mono` table cell
-   * must be exactly 14px, and an em-based rule fighting a utility class is the kind
-   * of surprise that gets worked around with `!important`.
-   *
-   * For mono in a utility-sized context, step down one step instead — sans
-   * `text-sm` pairs optically with mono `text-xs`. See docs/design/tokens.md §5.
-   */
+  /* Mono sets optically larger, so inline mono in prose is scaled to 0.92em. Not
+     applied to `.font-mono`, which would fight size utilities; step down a size there. */
   :where(p, li, td, dd, blockquote) > :is(code, kbd, samp) {
     font-size: 0.92em;
   }
 
-  /* Dates, counts, reliability scores and quota figures set in the sans face still
-     have to align in columns. Apply `.tabular` to any such cell. */
+  /* Tabular numerals for sans figures that need to align in columns. */
   .tabular {
     font-variant-numeric: tabular-nums;
   }

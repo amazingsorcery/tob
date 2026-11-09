@@ -8,7 +8,7 @@ export function Separator({
 }: React.HTMLAttributes<HTMLHRElement> & { orientation?: "horizontal" | "vertical" }) {
   return (
     <hr
-      // A decorative rule announced by a screen reader is noise, not information.
+      // Decorative.
       aria-hidden="true"
       className={cn(
         "shrink-0 border-0 bg-border",

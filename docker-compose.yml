@@ -1,22 +1,11 @@
-# Local smoke test of the PRODUCTION image. This is not a development environment.
-#
-# Development needs no containers at all: there is no database, no mail sink and no
-# service to stand up. `pnpm dev` is the whole story, and `pnpm build && pnpm start` is the
-# production-shaped check that does not involve Docker.
-#
-# What this file is for is the half of the deployment that `pnpm build` cannot exercise:
-# the pnpm install inside a Linux container, the layer ordering, the standalone output
-# guard, the generated KaTeX assets, and whether the final non-root image actually serves
-# anything. Every one of those has broken a deploy before, on the server, at the end.
+# Local smoke test of the production image (development just uses `pnpm dev`).
 #
 #   docker compose up -d --build          # build and run the runner image
 #   curl -fsS -o /dev/null -w '%{http_code}\n' http://127.0.0.1:3000/     # expect 200
 #   curl -fsS -o /dev/null -w '%{http_code}\n' http://127.0.0.1:3000/katex/katex.min.css
 #   docker compose down
 #
-# Caddy is deliberately absent: locally there is no domain to get a certificate for, and a
-# self-signed local TLS setup would test a configuration that is not the one deployed. The
-# Caddyfile is validated separately, in CI, with `caddy validate`.
+# No Caddy locally (no domain for a certificate); CI runs `caddy validate` on the Caddyfile.
 
 name: ${COMPOSE_PROJECT_NAME:-app}-local
 
@@ -39,8 +28,7 @@ services:
     cap_drop:
       - ALL
     ports:
-      # Bound to 127.0.0.1 explicitly. A bare "3000:3000" would publish an unfinished
-      # build to every machine on the network you happen to be on.
+      # Loopback only, not the whole network.
       - "127.0.0.1:3000:3000"
     healthcheck:
       test:

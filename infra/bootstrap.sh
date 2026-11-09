@@ -4,33 +4,13 @@
 #
 #   sudo ./infra/bootstrap.sh wrath.rip you@example.com
 #
-# This is docs/deploy/RUNBOOK.md "Provisioning a fresh box" and "First deploy" collapsed
-# into a script. The runbook is still the reference: it explains why each step is there and
-# what to do when one fails.
+# Idempotent; safe to re-run after a failure.
 #
-# Idempotent: safe to run again after a failure, and safe to run twice. Every step checks
-# whether it has already been done.
-#
-# WHAT IT DELIBERATELY DOES NOT DO
-#
-#   * It does not disable password SSH login and it does not touch your user. Both are in
-#     the runbook as manual steps, on purpose: automating them is how an operator locks
-#     themselves out of a machine they have no console access to. Do them once you have
-#     confirmed key-based login works.
-#
-#   * It does not create a swap file. The old stack's bootstrap did, because `next build`
-#     was the largest thing on a 2-4 GB box. The number, measured on this corpus: the build
-#     peaks around 2.5 GB across its worker processes (39 pages, three dissertations, every
-#     equation through KaTeX), and Next scales those workers with CPU count, so a 2-vCPU
-#     VPS peaks lower than that. The target box has 8 GB and runs two containers whose
-#     limits total 768 MB. There is nothing to insure against. If you are deploying to a
-#     box with less than 4 GB, add swap first — the commands are in the runbook under
-#     "The build was killed".
-#
-#   * It generates no secrets, because there are none. The application reads no environment
-#     variable at all; the .env it writes has two lines and both are for Caddy.
-#
-#   * It seeds nothing. There is no database.
+# Not done here:
+#   * SSH hardening (disabling password/root login). Do it by hand once key-based login
+#     works, so you can't lock yourself out.
+#   * Swap. The build peaks around 2.5 GB; on a box with under 4 GB RAM, add swap first.
+#   * Secrets. There are none; .env only holds DOMAIN and ACME_EMAIL for Caddy.
 #
 set -euo pipefail
 
@@ -50,8 +30,7 @@ note() { printf '    %s\n' "$*"; }
 [ -n "${ACME_EMAIL}" ] || die "Second argument missing: an email address for Let's Encrypt expiry notices."
 [ "$(id -u)" -eq 0 ] || die "Run with sudo."
 [ -f "${APP_DIR}/docker-compose.prod.yml" ] || die "No application at ${APP_DIR}.
-  Put the source tree there first, then run this again. See docs/deploy/RUNBOOK.md,
-  'Getting the code onto the box'."
+  Put the source tree there first (git clone, or tar over ssh), then run this again."
 
 step "0/6  The box"
 note "$(awk '/MemTotal/ {printf "%d MB RAM", int($2/1024)}' /proc/meminfo), $(df -Ph / | awk 'NR==2 {print $4}') free on /, $(nproc) vCPU"
@@ -63,8 +42,7 @@ apt-get install -y -qq ca-certificates curl gnupg ufw fail2ban unattended-upgrad
 note "done"
 
 step "2/6  Firewall"
-# Order matters: allow SSH BEFORE enabling, or enabling the firewall ends this session and
-# every future one.
+# Allow SSH before enabling, or this session gets cut off.
 ufw allow OpenSSH >/dev/null
 ufw allow 80/tcp >/dev/null
 ufw allow 443/tcp >/dev/null
@@ -101,9 +79,7 @@ else
 	cat >"${ENV_FILE}" <<ENVEOF
 # Written by infra/bootstrap.sh on $(date -u '+%Y-%m-%dT%H:%M:%SZ').
 #
-# Two variables, both read by Caddy, neither of them a secret. The application reads no
-# environment variable at all: every page is generated at build time from content/works/.
-# See .env.example for what each one does and for the optional overrides.
+# Both read by Caddy; neither is secret. See .env.example for optional overrides.
 
 DOMAIN=${DOMAIN}
 ACME_EMAIL=${ACME_EMAIL}
@@ -114,10 +90,7 @@ fi
 
 step "6/6  Deploy"
 cd "${APP_DIR}"
-# --no-pull when there is no git checkout with a remote. The source can arrive by other
-# means than a clone — on this deployment it arrives by tar over ssh — and deploy.sh's
-# pull step would have nothing to pull from. deploy.sh detects both cases itself; passing
-# the flag here makes the intent explicit for the common one.
+# --no-pull when there's no git remote (e.g. source delivered by tar over ssh).
 if [ -d "${APP_DIR}/.git" ] && git -C "${APP_DIR}" remote get-url origin >/dev/null 2>&1; then
 	./infra/deploy.sh
 else
@@ -135,11 +108,10 @@ cat <<DONEEOF
       docker compose -f docker-compose.prod.yml logs caddy | grep -i acme
 
   STILL TO DO BY HAND, once you have confirmed key-based SSH works:
-      docs/deploy/RUNBOOK.md -> "Provisioning a fresh box", step 2
-      (disable password authentication and root login)
+      disable password authentication and root login in /etc/ssh/sshd_config
 
   Optional, recommended:
-      the periodic health report — RUNBOOK, "The health timer"
+      the periodic health report — install infra/systemd/app-healthcheck.{service,timer}
 ============================================================================
 
 DONEEOF

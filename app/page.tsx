@@ -4,17 +4,8 @@ import { brand } from "@/config/brand";
 import { allWorks } from "@/lib/works";
 
 /**
- * The front page.
- *
- * The owner's direction is that the site explains nothing about itself: no tagline, no
- * summary of what the works are, as little as possible. So this is the name, the author, and
- * three titles. Each title carries its own subtitle because that is the work's name, not a
- * description of it, and a reader who wants the abstract, the contents and the length finds
- * them one click in, on the work's own page, in the author's own words.
- *
- * Nothing here is conditional on content it does not have. `config/brand.ts` sets no tagline
- * and says the UI must render nothing rather than a placeholder — so there is no fallback
- * sentence, and an empty tagline produces no empty element.
+ * Front page: name, author and the list of works (title + subtitle). No tagline or summary
+ * by design; details live on each work's page.
  */
 export default function HomePage() {
   const works = allWorks();

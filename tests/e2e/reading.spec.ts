@@ -1,20 +1,8 @@
 import { expect, test, type Page } from "@playwright/test";
 
 /**
- * The things only a browser can answer.
- *
- * Everything in the Vitest suite is about the HTML: which ids exist, which equations became
- * display blocks, which stylesheet is linked. None of it can see a layout. These five
- * questions all needed a real engine, and four of them found a real defect the first time
- * they were asked:
- *
- *   - the measure was 94 characters, not 68, because `1ch` is the width of a zero and not of
- *     an average letter;
- *   - 31 of 42 display equations are wider than a phone;
- *   - the page must not scroll sideways even so;
- *   - a table-of-contents link has to actually move the viewport to its heading, and not to
- *     a point underneath the sticky header;
- *   - the scroll-spy has to name the section the reader is in.
+ * Layout checks that need a real browser: no horizontal page scroll, scrollable wide
+ * content, the measure, TOC anchors clearing the sticky header, and the scroll-spy.
  */
 
 const MATHS_CHAPTER = "/three-lemmas/2-three-lemmas";
@@ -33,8 +21,6 @@ test.describe("the page never scrolls sideways", () => {
   for (const path of ["/", "/three-lemmas", MATHS_CHAPTER, PHILOSOPHY_CHAPTER, WIDE_TABLE_CHAPTER]) {
     test(`${path}`, async ({ page }) => {
       await page.goto(path);
-      // A grid child defaults to a minimum width of its content, so an eleven-column table
-      // widens the column, then the grid, then the document — and the body text goes with it.
       expect(await pageOverflow(page)).toBe(0);
     });
   }
@@ -51,8 +37,7 @@ test.describe("things wider than the screen scroll inside their own box", () => 
       })),
     );
     expect(measured.length).toBeGreaterThan(5);
-    // Every one is a tab stop, whether or not it overflows on this viewport — a container
-    // that cannot be focused cannot be scrolled from the keyboard (WCAG 2.1.1).
+    // All are tab stops, overflowing or not (WCAG 2.1.1).
     for (const equation of measured) {
       expect(equation.tabIndex).toBe(0);
       expect(equation.label).toBeTruthy();
@@ -83,12 +68,7 @@ test.describe("the measure", () => {
       const paragraph = document.querySelector<HTMLElement>(".prose > p");
       if (!paragraph) return 0;
       const style = getComputedStyle(paragraph);
-      /*
-       * The average advance of running English text in this exact face and size — NOT the
-       * width of a zero, which is what `1ch` means and what made the column 94 characters
-       * wide. The sample is ordinary prose so that spaces and capitals are weighted the way
-       * they are on the page.
-       */
+      // Average advance of real prose in this face and size (not `1ch`, the width of "0").
       const sample =
         "Philosophy's central problems are notorious for their persistence, and the " +
         "questions of what knowledge is, whether we act freely, and what makes a person " +
@@ -104,8 +84,7 @@ test.describe("the measure", () => {
       return Math.round(paragraph.getBoundingClientRect().width / advance);
     });
 
-    // The target is ~70. The window is wide enough to survive a hinting difference between
-    // engines and narrow enough to fail the 94 that `--measure: 68ch` produced.
+    // Target ~70, with slack for engine differences.
     expect(characters).toBeGreaterThanOrEqual(62);
     expect(characters).toBeLessThanOrEqual(78);
   });
@@ -122,9 +101,7 @@ test.describe("the table of contents", () => {
 
     for (const href of targets) {
       const id = href.slice(1);
-      // An attribute selector, not `#id`: every section id in this corpus begins with a
-      // digit ("23-hasse-derivatives"), which is not a valid CSS identifier unescaped — and
-      // `CSS.escape` does not exist in Node, only in the page.
+      // Attribute selector: ids start with a digit, and `CSS.escape` isn't available in Node.
       const heading = page.locator(`[id="${id}"]`);
       await expect(heading, `#${id} does not exist in the document`).toHaveCount(1);
 
@@ -136,8 +113,7 @@ test.describe("the table of contents", () => {
       const box = await heading.boundingBox();
       expect(box, `#${id} has no box after navigating to it`).not.toBeNull();
       if (!box) continue;
-      // Below the 3.5rem header — a heading that lands underneath it looks like a dead link —
-      // and above the fold, which is what "the link worked" means to a reader.
+      // Below the 3.5rem header and above the fold.
       expect(box.y, `#${id} landed under the sticky header`).toBeGreaterThanOrEqual(48);
       expect(box.y, `#${id} landed off screen`).toBeLessThan(400);
     }
@@ -156,9 +132,7 @@ test.describe("the table of contents", () => {
 
     const headings = page.locator(".prose h2");
     const third = headings.nth(2);
-    // `scrollIntoView({ block: "start" })`, not `scrollIntoViewIfNeeded`: the latter scrolls
-    // the minimum distance, which can leave the heading at the FOOT of the viewport — below
-    // the reading line, so the previous section is still correctly the current one.
+    // `block: "start"`: `scrollIntoViewIfNeeded` can leave the heading below the reading line.
     await third.evaluate((element) => {
       element.scrollIntoView({ block: "start", behavior: "instant" });
     });
@@ -173,13 +147,8 @@ test.describe("the table of contents", () => {
   });
 
   test("clicking a link in the rail makes that section current", async ({ page, isMobile }) => {
-    /*
-     * REGRESSION. `scroll-padding-top: 5rem` on <html> and `scroll-margin-top: 5.5rem` on the
-     * headings both applied, and scroll padding and scroll margin ADD: a link landed its
-     * heading 168px down the viewport, while the rail reads the position off a line at 120px.
-     * Following the link to §2.3 therefore highlighted §2.2 in the list beside it — the two
-     * halves of the same navigation disagreeing about where the reader was.
-     */
+    // Scroll padding and scroll margin add up; if both are set, the heading lands below the
+    // rail's reading line and the previous section gets highlighted.
     test.skip(isMobile, "The sticky rail is a wide-screen surface.");
     await page.goto(MATHS_CHAPTER);
 
@@ -199,7 +168,6 @@ test.describe("the table of contents", () => {
     await expect(disclosure).toHaveJSProperty("open", false);
     await disclosure.locator("summary").click();
     await expect(disclosure).toHaveJSProperty("open", true);
-    // It must not then eat the screen: the chapter's first paragraph is still reachable.
     expect(await pageOverflow(page)).toBe(0);
   });
 });

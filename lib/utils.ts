@@ -6,11 +6,7 @@ export function cn(...inputs: ClassValue[]): string {
   return twMerge(clsx(inputs));
 }
 
-/**
- * Format a date for display. Fixed to en-GB with a UTC timezone so server and client
- * render identical strings — a locale-dependent format is a hydration mismatch waiting
- * to happen, and an investigator comparing timestamps needs them stable, not local.
- */
+/** Format a date. Fixed en-GB/UTC so server and client output match (no hydration mismatch). */
 export function formatDate(value: Date | string): string {
   const date = value instanceof Date ? value : new Date(value);
   if (Number.isNaN(date.getTime())) return "Unknown";
@@ -22,7 +18,7 @@ export function formatDate(value: Date | string): string {
   }).format(date);
 }
 
-/** Full timestamp with UTC marker, for notes and audit trails where precision matters. */
+/** Full timestamp with a UTC marker. */
 export function formatTimestamp(value: Date | string): string {
   const date = value instanceof Date ? value : new Date(value);
   if (Number.isNaN(date.getTime())) return "Unknown";
@@ -37,10 +33,7 @@ export function formatTimestamp(value: Date | string): string {
   }).format(date)} UTC`;
 }
 
-/**
- * How stale is a verification claim? The directory's credibility rests on being honest
- * about this, so the thresholds are deliberately unforgiving.
- */
+/** Age of a verification date: fresh (≤90 days), ageing (≤1 year) or stale. */
 export function verificationAge(lastVerifiedAt: Date | string): {
   days: number;
   status: "fresh" | "ageing" | "stale";

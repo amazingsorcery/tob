@@ -1,11 +1,8 @@
 import { WorkList } from "@/components/work-list";
 
 /**
- * Shown when the work exists but the chapter segment does not name one of its parts.
- *
- * It cannot say which work was asked for: a `not-found.tsx` receives no params — it is
- * rendered outside the segment that failed. Rather than guess, it points at the contents of
- * all three, where every chapter of every work is one click away.
+ * Unknown chapter of a known work. `not-found.tsx` gets no params, so list all works'
+ * contents instead of naming the work.
  */
 export default function ChapterNotFound() {
   return (

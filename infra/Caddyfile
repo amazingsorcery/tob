@@ -1,260 +1,116 @@
 # Caddy v2 — TLS termination, security headers, reverse proxy to the app container.
 #
-# The hostname is NEVER written in this file. {$DOMAIN} and {$ACME_EMAIL} are substituted
-# from the container environment at config-load time (docker-compose.prod.yml passes them
-# through from .env). Re-pointing at a different domain is:
+# {$DOMAIN} and {$ACME_EMAIL} come from .env via docker-compose.prod.yml. To change domain,
+# edit .env and run: docker compose -f docker-compose.prod.yml up -d caddy
 #
-#     edit .env  ->  docker compose -f docker-compose.prod.yml up -d caddy
-#
-# It is not an edit to this file and it is not a rebuild.
-#
-# Validate after any change, before restarting:
+# Validate, then reload without dropping connections:
 #     docker compose -f docker-compose.prod.yml exec caddy caddy validate --config /etc/caddy/Caddyfile
-# Reload without dropping connections or re-requesting certificates:
 #     docker compose -f docker-compose.prod.yml exec caddy caddy reload --config /etc/caddy/Caddyfile
-#
-# THERE IS NO `import`. This file used to import a generated csp.caddy holding an allowlist
-# of camera, tile and stream origins. The site fetches nothing from anywhere, so the policy
-# below is written by hand, in full, and is the only place it lives.
 
 {
-	# ACME contact address. Let's Encrypt uses it for expiry warnings if renewal ever
-	# stalls — the last line of defence before a certificate lapses.
+	# ACME contact for expiry warnings.
 	email {$ACME_EMAIL}
 
-	# Defaults to the Let's Encrypt production directory. Override in .env with the
-	# staging directory while testing DNS or firewall changes:
+	# Defaults to Let's Encrypt production. Use staging while testing DNS/firewall changes
+	# (production allows 5 failed authorisations per hostname per hour):
 	#   ACME_CA=https://acme-staging-v02.api.letsencrypt.org/directory
-	# Production allows 5 failed authorisations per hostname per hour. Burning that during
-	# a DNS misconfiguration locks you out of issuance for the rest of the hour.
 	acme_ca {$ACME_CA}
 
 	servers {
-		# Caddy IS the edge here — no CDN, no load balancer in front — so there is no
-		# upstream whose X-Forwarded-For should be believed. Leaving trusted_proxies unset
-		# (the default: trust nothing) means Caddy derives the client IP from the actual
-		# TCP peer. If a CDN is ever put in front, this must become
-		#     trusted_proxies static <cdn-egress-cidr> ...
-		# and the header_up lines below must go back to appending.
+		# Caddy is the edge, so trusted_proxies stays unset and the client IP is the TCP peer.
+		# Behind a CDN, set `trusted_proxies static <cdn-egress-cidr> ...` and make the
+		# header_up lines below append instead.
 	}
 }
 
 {$DOMAIN} {
 	# --- Compression ------------------------------------------------------------------
-	# zstd first (better ratio, cheaper to decompress), gzip for everything older. Caddy
-	# negotiates from Accept-Encoding and skips already-compressed content types.
-	#
-	# Caddy's default response matcher is used, unmodified. The old file carried an
-	# explicit content-type list whose only purpose was to keep `text/event-stream` out of
-	# the compressor, because a buffered compressor turns a live stream into "nothing for
-	# thirty seconds, then everything at once". This site serves no stream and cannot: every
-	# route is prerendered HTML. If one is ever added, the exclusion has to come back —
-	# recover it from this file's history rather than rediscovering it in production.
+	# Default matcher is fine: there are no streaming responses (text/event-stream would
+	# need excluding).
 	encode zstd gzip
 
 	# --- Request body limit -----------------------------------------------------------
-	# There is no route on this site that reads a request body: no forms, no API, no
-	# uploads. 1 MB is far more than the zero bytes anything legitimate sends, and it stops
-	# a client streaming gigabytes at the Node process. Caddy answers 413 above it.
+	# No route reads a body; this just caps abusive uploads. Caddy returns 413 above it.
 	request_body {
 		max_size 1MB
 	}
 
 	# --- Security headers -------------------------------------------------------------
 	header {
-		# HSTS. 2 years, all subdomains, preload-eligible.
-		#
-		# !! READ THIS BEFORE SUBMITTING TO THE PRELOAD LIST !!
-		# `preload` is a request to be hard-coded into browsers' built-in HSTS lists. It is
-		# effectively IRREVERSIBLE for months, it applies to EVERY subdomain, and removal
-		# ships on the browsers' own release cadence. If any subdomain of this domain will
-		# ever need plain HTTP — a staging box, a mail-provider verification host — preload
-		# will break it and you cannot quickly undo it.
-		#
-		# The token does nothing on its own; inclusion only happens after a manual
-		# submission at https://hstspreload.org. Ship the header, run for a few weeks, and
-		# only submit once you are certain about subdomains. To back out before submitting,
-		# drop `preload` and lower max-age.
+		# HSTS, 2 years, all subdomains. `preload` only takes effect after submitting at
+		# https://hstspreload.org, which is hard to undo for months and covers every
+		# subdomain. Only submit once no subdomain will ever need plain HTTP.
 		Strict-Transport-Security "max-age=63072000; includeSubDomains; preload"
 
-		# Stops content-type sniffing.
 		X-Content-Type-Options "nosniff"
 
-		# `no-referrer`, not the more common `strict-origin-when-cross-origin`. The works
-		# carry bibliographies, and a reader following a citation should not announce to
-		# the publisher, the archive or the university host that they arrived from a page
-		# on this site. The cost is that server-side analytics could not see internal
-		# navigation; there are no server-side analytics. If same-origin referrers are ever
-		# needed, the correct loosening is `same-origin` and nothing wider.
+		# Don't leak the referring page to sites linked from bibliographies. Loosen to
+		# `same-origin` at most.
 		Referrer-Policy "no-referrer"
 
-		# Clickjacking. X-Frame-Options is the legacy control for old browsers; the CSP
-		# `frame-ancestors 'none'` below is the modern one and takes precedence where both
-		# are understood. Both are set on purpose.
+		# Legacy clickjacking control; CSP frame-ancestors covers modern browsers.
 		X-Frame-Options "DENY"
 
-		# Explicitly surrender browser capabilities the site does not use. A real control,
-		# not decoration: it means a successful injection cannot reach the camera,
-		# microphone or geolocation of a reader's machine. `browsing-topics=()` opts out of
-		# Chrome's Topics API, which CSP does not cover.
+		# Disable unused browser features. `browsing-topics=()` opts out of Chrome's Topics API.
 		Permissions-Policy "accelerometer=(), autoplay=(), browsing-topics=(), camera=(), display-capture=(), encrypted-media=(), fullscreen=(self), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), midi=(), payment=(), picture-in-picture=(), publickey-credentials-get=(), screen-wake-lock=(), usb=(), xr-spatial-tracking=()"
 
-		# Cross-origin isolation primitives. COOP severs the window.opener relationship so
-		# a page we link to cannot reach back into our window. CORP stops other origins
-		# embedding our responses as subresources.
+		# COOP stops linked pages reaching window.opener; CORP stops cross-origin embedding.
 		Cross-Origin-Opener-Policy "same-origin"
 		Cross-Origin-Resource-Policy "same-origin"
 
-		# The legacy XSS auditor is itself exploitable and is disabled in every current
-		# browser. `0` is the correct modern value; `1; mode=block` is cargo cult.
+		# Disable the legacy XSS auditor (itself exploitable).
 		X-XSS-Protection "0"
 
-		# Do not advertise the stack.
 		-Server
 		-X-Powered-By
 
-		# ==============================================================================
-		# CONTENT SECURITY POLICY
-		# ==============================================================================
-		# Written by hand for what this site actually is: 39 pages of prerendered HTML,
-		# one CSS bundle, one KaTeX stylesheet, self-hosted woff2 fonts, and the Next.js
-		# client runtime. It fetches nothing from any other origin, at build time or at
-		# run time, so there is no third-party origin anywhere in this policy.
+		# --- Content Security Policy ---------------------------------------------------
+		# Prerendered HTML, self-hosted CSS/fonts/KaTeX and the Next.js runtime; no
+		# third-party origins. Re-verify against a production build after Next.js upgrades.
 		#
-		# EVERY CLAIM BELOW WAS MEASURED against a production build of this repository
-		# (`next build`, then reading .next/server/app/**.html and .next/static/css/*.css).
-		# The numbers are from `/` and from the chapter
-		# `/kakeya-multiplicity/3-the-counting-bound`. Re-run those checks after a Next.js
-		# major upgrade; the commands are in docs/deploy/RUNBOOK.md, "Re-checking the CSP".
+		# Strict:
+		#   default-src 'self'      covers media, workers, manifests (none are used).
+		#   base-uri 'none'         blocks <base href> injection.
+		#   object-src, frame-src, frame-ancestors 'none'.
+		#   form-action 'none'      there are no forms.
+		#   font-src 'self'         next/font self-hosts at build time; KaTeX fonts in /katex/fonts/.
+		#   connect-src 'self'      App Router .rsc prefetches.
+		#   script-src-attr 'none'  no inline handlers in the HTML; blocks injected onerror= etc.
+		#   style-src-elem 'self'   no inline <style> (experimental.inlineCss is off).
 		#
-		# ---- Directives that are as tight as they go ---------------------------------
-		#   default-src 'self'      everything not named below is same-origin only. It is
-		#                           what governs media, workers, manifests and anything a
-		#                           future browser adds a directive for. None of those are
-		#                           named separately because none of them are used: there
-		#                           is no <audio>, no <video>, no web worker, no
-		#                           webmanifest. Adding an empty directive for each would
-		#                           be a list to keep in step for no gain.
-		#   base-uri 'none'         blocks <base href> injection, which would otherwise
-		#                           re-point every relative URL on the page.
-		#   object-src 'none'       no <object>, no <embed>, no plugins.
-		#   frame-ancestors 'none'  nobody may frame us.
-		#   frame-src 'none'        we frame nobody. No embeds of any kind.
-		#   form-action 'none'      there is not one <form> on this site. Not 'self': the
-		#                           site has no endpoint that accepts a POST, so even a
-		#                           same-origin submission is something going wrong.
-		#   img-src 'self' data:    see the note on `data:` below.
-		#   font-src 'self'         MEASURED: the CSS references 17 woff2 files, all under
-		#                           /_next/static/media/ — next/font downloads them at
-		#                           BUILD time and emits them into the bundle. KaTeX's own
-		#                           fonts are served from /katex/fonts/. There is no
-		#                           request to fonts.googleapis.com or fonts.gstatic.com at
-		#                           run time and no font CDN package in package.json, so
-		#                           there is genuinely no third-party origin to allow.
-		#   connect-src 'self'      the App Router client fetches .rsc payloads when
-		#                           prefetching a link. Same-origin, always.
-		#   script-src-attr 'none'  MEASURED: zero inline event-handler attributes
-		#                           (onclick=, onerror=, ...) in the prerendered HTML, and
-		#                           React attaches listeners as properties, which CSP does
-		#                           not govern. This is the directive that claws back most
-		#                           of what script-src's 'unsafe-inline' concedes below: an
-		#                           injected `<img onerror=...>` does not run.
-		#   style-src-elem 'self'   MEASURED: zero inline <style> elements in the
-		#                           prerendered HTML. Tailwind v4 emits a linked
-		#                           stylesheet, KaTeX's is a linked stylesheet, and Next.js
-		#                           only inlines CSS into <style> when the opt-in
-		#                           experimental.inlineCss is enabled, which it is not.
-		#   upgrade-insecure-requests
-		#                           any accidental http:// subresource is fetched over TLS
-		#                           rather than blocked or silently downgrading the page.
+		# Loosened:
+		#   script-src 'unsafe-inline'  the App Router inlines RSC payload scripts
+		#       (self.__next_f.push) that differ per page, so hashes aren't practical, and
+		#       nonces would force dynamic rendering. Content is committed Markdown rendered
+		#       with HTML escaped and no dangerouslySetInnerHTML.
+		#   style-src / style-src-attr 'unsafe-inline'  KaTeX positions glyphs with inline
+		#       style attributes. style-src also carries it for browsers without -elem/-attr
+		#       support (Safari < 15.4).
+		#   img-src data:  not needed today; kept so a favicon or inline SVG isn't silently
+		#       blocked.
 		#
-		# ---- Directives that are LOOSENED, why, and what it would take to tighten -----
-		#
-		# 1) script-src 'self' 'unsafe-inline'
-		#    WHY: the App Router streams the RSC payload to the browser as a sequence of
-		#    inline <script>self.__next_f.push(...)</script> tags. MEASURED: 14 of them on
-		#    the front page and 158 on one mathematics chapter, whose contents differ per
-		#    page. Neither a hash allowlist (hundreds of hashes, regenerated every build)
-		#    nor a static policy can cover them. Without 'unsafe-inline' the page renders
-		#    its server HTML and then never hydrates.
-		#    IMPACT: an injected inline <script> would execute. Injected *external* scripts
-		#    are still blocked by 'self', and injected inline *attributes* are blocked by
-		#    script-src-attr 'none' above.
-		#    HOW BAD IS THAT HERE: the only injection surface is the Markdown corpus, which
-		#    renders through react-markdown with HTML escaped by default and no
-		#    dangerouslySetInnerHTML anywhere (lint-banned). The corpus is authored by the
-		#    site owner and committed to this repository — there is no user input on this
-		#    site at all.
-		#    TO TIGHTEN: nonces. Next.js supports nonce propagation via middleware, but a
-		#    per-request nonce cannot be baked into a prerendered page, so adopting it
-		#    would make all 39 static pages dynamically rendered. That trades the entire
-		#    architecture of this site for a hardening whose attack surface is a corpus we
-		#    write ourselves. Not worth it, and it is app code rather than infra.
-		#
-		# 2) style-src 'self' 'unsafe-inline'  /  style-src-attr 'unsafe-inline'
-		#    WHY: KaTeX positions every glyph with inline style attributes. MEASURED: 45
-		#    style="..." attributes in one display equation, 4 in a trivial inline one,
-		#    1,204 on a single chapter page, 16 on the front page. CSP treats a style
-		#    *attribute* as an inline style and a nonce cannot be attached to an attribute.
-		#    Without this, mathematics renders as a pile of unpositioned glyphs — a
-		#    silent, total failure of the thing this site exists to publish.
-		#    IMPACT: much lower than an inline script. The realistic attack is CSS-based
-		#    exfiltration or UI redressing, not code execution — and style-src-elem 'self'
-		#    above already blocks the <style> element and the third-party stylesheet, which
-		#    is where those attacks are usually mounted.
-		#    NOTE ON THE PAIR: style-src is stated with 'unsafe-inline' as well as the two
-		#    -elem/-attr directives on purpose. A browser too old to understand
-		#    style-src-elem/-attr (Safari before 15.4) falls back to style-src, and it must
-		#    find something there that lets the equations render.
-		#    TO TIGHTEN: it cannot be, while KaTeX renders to HTML+CSS. MathML-only output
-		#    would remove the need, and would also remove the typography KaTeX exists for.
-		#
-		# 3) img-src 'self' data:
-		#    WHY: MEASURED — this site currently ships no <img> at all and no data: URI in
-		#    either the HTML or the CSS, so 'self' alone would work today. `data:` is kept
-		#    because the one image thing likely to be added is a favicon or a small inline
-		#    SVG, and the failure mode of forgetting to widen the policy is a silently
-		#    blocked icon that nobody attributes to CSP for an hour.
-		#    IMPACT: negligible. A data: image is an exfiltration channel only in
-		#    combination with a separate injection flaw, and it cannot execute.
-		#    TO TIGHTEN: drop `data:` and re-check the favicon still renders.
-		#
-		# ---- Not set, and why --------------------------------------------------------
-		#   report-uri / report-to: reporting needs an endpoint that accepts and stores
-		#     violation reports. This site has no endpoint that accepts anything, and
-		#     adding one to collect the URLs readers visit would be its own privacy
-		#     question. Not built, so not claimed.
-		#   require-trusted-types-for 'script': would break React's DOM writes.
-		#
-		# KaTeX contributes NOTHING to script-src: it runs at build time, in the Node
-		# process, and ships HTML and CSS. There is no KaTeX JavaScript in the browser.
-		# ==============================================================================
+		# Not set: report-uri/report-to (no endpoint to receive reports),
+		# require-trusted-types-for (breaks React DOM writes). KaTeX runs at build time
+		# only and adds no client JS.
 		Content-Security-Policy "default-src 'self'; base-uri 'none'; object-src 'none'; frame-ancestors 'none'; frame-src 'none'; form-action 'none'; script-src 'self' 'unsafe-inline'; script-src-attr 'none'; style-src 'self' 'unsafe-inline'; style-src-elem 'self'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; upgrade-insecure-requests"
 	}
 
 	# --- Access log -------------------------------------------------------------------
 	log {
-		# stdout, not a file. The json-file driver in docker-compose.prod.yml rotates at
-		# 10 MB x 3, so logging to a file inside the container would create a SECOND
-		# unrotated growth path on the same disk — the exact failure this stack avoids.
-		# `docker compose logs caddy` is the single place to look.
+		# stdout, rotated by Docker's json-file driver (see docker-compose.prod.yml).
 		output stdout
 
 		format filter {
 			wrap json
 
 			fields {
-				# Caddy redacts credentials by default (log_credentials is off). Stated
-				# explicitly so the guarantee survives a version bump that alters defaults.
+				# Already redacted by default; explicit in case defaults change.
 				request>headers>Cookie delete
 				request>headers>Authorization delete
 				resp_headers>Set-Cookie delete
 
-				# Truncate client IPs before they are written: /24 for IPv4, /48 for IPv6.
-				# Enough to diagnose an abusive network or a routing problem; not enough to
-				# place an individual reader of a particular chapter. This site sets no
-				# cookie and runs no analytics; the access log is the only record that a
-				# person read anything, and this is what keeps it from being one.
+				# Mask client IPs (/24 IPv4, /48 IPv6): enough to spot abusive networks,
+				# not enough to identify individual readers.
 				request>remote_ip ip_mask {
 					ipv4 24
 					ipv6 48
@@ -264,36 +120,19 @@
 	}
 
 	# --- Reverse proxy ----------------------------------------------------------------
-	# `web` is the compose service name, resolved on the internal `site` network. Port 3000
-	# is not published to the host by that service — this is the only path to it.
+	# `web` resolves on the internal `site` network; port 3000 isn't published to the host.
 	reverse_proxy web:3000 {
-		# SET, not append. Caddy's default is to append the peer address to any incoming
-		# X-Forwarded-For, so a client sending its own value gets it delivered to the app
-		# ahead of the real address. The application reads none of these headers today —
-		# it has no request-time logic at all — but a proxy that forwards attacker-supplied
-		# values is a trap for whoever adds the first thing that does read them.
+		# Overwrite rather than append, so client-supplied forwarding headers never reach the app.
 		header_up X-Forwarded-For {remote_host}
 		header_up X-Real-IP {remote_host}
 		header_up X-Forwarded-Proto {scheme}
 		header_up X-Forwarded-Host {host}
 
-		# Caddy preserves the original Host header by default, which is what Next.js wants.
-		# Stated here so nobody "fixes" it later.
+		# Caddy's default already preserves Host; explicit for clarity.
 		header_up Host {host}
 
-		# TWO TIMEOUTS BOUNDING TWO DIFFERENT FAILURES.
-		#
-		# `dial_timeout 5s` fires when the app is DOWN: a container that is restarting,
-		# crashed or not yet started refuses the connection, Caddy gives up in five seconds
-		# and serves a diagnosable 502. That is the common case and it is fast.
-		#
-		# `response_header_timeout 15s` only bites when `web` ACCEPTS the connection and
-		# then does not answer — a hung process, not a dead one. 15 s where the old stack
-		# needed 60: that number was the ceiling of the slowest upstream connector plus
-		# overhead, and there are no upstreams. Every response here is a prerendered file
-		# read off local disk, which is single-digit milliseconds. Anything still silent
-		# after fifteen seconds is stuck, and holding the connection longer only delays the
-		# 502 that tells you so.
+		# dial_timeout: app down/restarting. response_header_timeout: app accepted but hung.
+		# Responses are prerendered files, so 15s is generous.
 		transport http {
 			dial_timeout 5s
 			response_header_timeout 15s
@@ -301,17 +140,12 @@
 	}
 
 	# --- Error pages ------------------------------------------------------------------
-	# When the app is down, Caddy's default is an empty body. A plain-text status tells a
-	# human "this is the proxy, not the site" without inventing a branded error page —
-	# brand strings live in config/brand.ts and are the application's to render.
+	# Plain-text status instead of Caddy's empty body when the app is unreachable.
 	handle_errors {
 		header Content-Type "text/plain; charset=utf-8"
 		respond "{err.status_code} {err.status_text}" {err.status_code}
 	}
 }
 
-# A `www.` redirect is intentionally NOT configured. Adding `www.{$DOMAIN}` to the site
-# address above makes Caddy request a certificate for it, and if the www DNS record does not
-# exist the failed authorisation counts against the Let's Encrypt rate limit for the whole
-# hostname and can block issuance for the apex too. Create the DNS record first, then add
-# the hostname — see docs/deploy/RUNBOOK.md, "Adding a www redirect".
+# No www redirect. Before adding `www.{$DOMAIN}`, create its DNS record; failed ACME
+# authorisations count against the rate limit and can block the apex certificate too.

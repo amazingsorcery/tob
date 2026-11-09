@@ -25,8 +25,7 @@ export default defineConfig({
     ? undefined
     : {
         command: `pnpm build && pnpm start --port ${PORT}`,
-        // A static site has no health endpoint; the front page returning 200 IS the
-        // health check, and it is the same probe infra/deploy.sh uses.
+        // Ready when the front page returns 200 (same probe as infra/deploy.sh).
         url: `${baseURL}/`,
         reuseExistingServer: !process.env.CI,
         timeout: 180_000,

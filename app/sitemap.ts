@@ -4,12 +4,8 @@ import { brand } from "@/config/brand";
 import { allWorks } from "@/lib/works";
 
 /**
- * Every URL on the site, generated from the corpus at build time.
- *
- * No `lastModified`. The only date available is the file's mtime, which changes when the repo
- * is cloned, checked out or copied, and a sitemap that claims a document was revised because
- * a build machine touched it is worse than one that says nothing. Omission is allowed here;
- * invention is not.
+ * Every URL on the site. No `lastModified`: file mtimes change on clone/checkout and don't
+ * reflect real revisions.
  */
 export default function sitemap(): MetadataRoute.Sitemap {
   const works = allWorks();

@@ -1,6 +1,4 @@
-# Normalise to LF in the repository. Shell scripts and Dockerfiles run inside Linux
-# containers — a CRLF line ending there produces "bad interpreter: no such file or
-# directory", which is a confusing failure to debug on a live server.
+# LF everywhere; CRLF breaks shell scripts on Linux ("bad interpreter").
 * text=auto eol=lf
 
 *.sh        text eol=lf

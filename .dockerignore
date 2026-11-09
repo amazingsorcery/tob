@@ -1,16 +1,7 @@
-# What NOT to send to the Docker daemon as build context.
+# Build context exclusions. Keeps secrets out of the builder layer (`COPY . .`) and keeps
+# large directories from busting the cache.
 #
-# Two reasons this file matters more than it looks:
-#   1. Secrets. A stray .env in the build context ends up in the `builder` layer via
-#      `COPY . .` and is then readable forever with `docker history` / `docker save`, even
-#      though the runner stage never copies it.
-#   2. Cache and size. node_modules is ~700 MB and .devpg is ~125 MB; shipping either as
-#      context invalidates the build cache on unrelated touches and makes every build
-#      minutes slower.
-#
-# WHAT MUST NOT BE ADDED HERE: `public/` and `scripts/`. The KaTeX stylesheet and fonts are
-# generated into public/katex/ by scripts/copy-katex-assets.ts during the builder stage, and
-# every equation on the site depends on them.
+# Don't add `public/` or `scripts/`: the builder generates public/katex/ from them.
 
 # --- Dependencies: reinstalled inside the image from the lockfile ---
 node_modules
@@ -54,8 +45,7 @@ tests/**/__screenshots__
 .devpg
 .scratch
 
-# --- Infra and docs: not needed to build the app, and editing the runbook must not
-#     invalidate the image cache ---
+# --- Infra and docs: not needed for the build ---
 Dockerfile
 .dockerignore
 docker-compose.yml
@@ -63,8 +53,7 @@ docker-compose.prod.yml
 infra
 docs
 
-# --- Author's working copies of the manuscripts. `content/works/*.md` is what the site
-#     builds from; this directory is the raw material and is not read by anything. ---
+# --- Manuscript working copies; the site builds from content/works/ ---
 MY STUFF
 
 # --- Editor / OS noise ---

@@ -4,17 +4,8 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
 /**
- * `app/reading.css` §6 re-declares part of the palette for the print medium, because a page
- * printed in the dark theme is a black page. That block is a copy of the light theme, and a
- * copy is a liability: the moment `[data-theme="light"]` moves, the printed page is running
- * a palette nobody has looked at, with contrast ratios nobody has measured.
- *
- * So it is asserted rather than trusted. Every token the print block sets must have exactly
- * the value the light theme gives it — then tokens.css §4.1, which measured every ratio in
- * that theme, covers paper too, and there is no second matrix to maintain.
- *
- * This is the same failure mode as audit QV-06 one file over: a documented pairing that
- * nobody re-derived after the palette moved.
+ * `app/reading.css` §6 copies part of the light palette for print. Every token it sets must
+ * match `[data-theme="light"]` exactly, so the tokens.css §4.1 ratios cover print too.
  */
 
 const tokens = readFileSync(join(process.cwd(), "app", "tokens.css"), "utf8");
@@ -75,11 +66,7 @@ describe("the print theme is the light theme", () => {
   });
 
   it("covers every token the reading surface actually paints with", () => {
-    /*
-     * The other direction. A token used by `.prose` but left out of the print block keeps
-     * its dark value on paper — light text on white — and nothing above would notice,
-     * because that test only checks the tokens that ARE there.
-     */
+    // A colour token missing from the print block keeps its dark value on paper.
     const used = new Set(
       [...reading.matchAll(/var\((--[a-z0-9-]+)\)/g)].map((match) => match[1] ?? ""),
     );

@@ -7,13 +7,10 @@
 #
 # Exit code: 0 all checks passed, 1 at least one FAIL, 2 warnings only.
 #
-# This exists because the failures that actually take a small VPS down are the slow ones —
-# the disk filling, a certificate quietly failing to renew, a container restart-looping at
-# 3 a.m. — and none of them announce themselves. A static site can be broken for weeks
-# without a single error being logged anywhere a human looks. Run this from a timer
-# (infra/systemd/app-healthcheck.timer) and you find out on the day it starts.
+# Catches slow failures (disk filling, cert renewal failing, restart loops). Run it from
+# infra/systemd/app-healthcheck.timer.
 
-set -uo pipefail # deliberately NOT -e: every check must run even after one fails.
+set -uo pipefail # no -e: every check runs even after one fails.
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 REPO_DIR="$(cd -- "${SCRIPT_DIR}/.." && pwd)"
@@ -50,8 +47,7 @@ emit "Health report — $(date -u '+%Y-%m-%dT%H:%M:%SZ') — $(hostname)"
 emit ""
 
 # --- Containers -------------------------------------------------------------------------
-# Two. Ordered so a reader sees the cause before the symptom: if web is down, caddy is
-# going to be serving 502s and that is not a separate fault.
+# web first: if it's down, caddy's 502s are a symptom, not a separate fault.
 emit "Containers"
 for svc in web caddy; do
 	cid="$("${COMPOSE[@]}" ps -q "${svc}" 2>/dev/null)"
@@ -73,8 +69,7 @@ for svc in web caddy; do
 		ok "${svc} running (health=${health}, restarts=${restarts})"
 	fi
 
-	# A container that has restarted many times is up right now and broken anyway: it is
-	# crash-looping, and each loop drops in-flight requests.
+	# Many restarts means a crash loop even if it's up right now.
 	if [ "${restarts:-0}" -gt 5 ]; then
 		warn "${svc} has restarted ${restarts} times — it is crash-looping. docker compose -f ${COMPOSE_FILE} logs --tail=100 ${svc}"
 	fi
@@ -84,7 +79,7 @@ done
 emit ""
 emit "Site"
 
-# Inside the container first: this separates "the app is broken" from "the edge is broken".
+# Inside the container first, to separate app failures from edge failures.
 if "${COMPOSE[@]}" exec -T web node -e \
 	"fetch('http://127.0.0.1:3000/').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))" >/dev/null 2>&1; then
 	ok "the front page returns 200 from inside the container"
@@ -92,8 +87,7 @@ else
 	fail "the front page did not return 200 inside the container — the server is not serving. docker compose -f ${COMPOSE_FILE} logs --tail=100 web"
 fi
 
-# The generated KaTeX stylesheet. Its absence is invisible from `/`: every page still
-# returns 200 and every equation renders as unpositioned glyphs. See infra/deploy.sh.
+# Generated KaTeX stylesheet; if missing, pages still return 200 but maths is unstyled.
 if "${COMPOSE[@]}" exec -T web node -e \
 	"fetch('http://127.0.0.1:3000/katex/katex.min.css').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))" >/dev/null 2>&1; then
 	ok "the KaTeX stylesheet is served"
@@ -105,14 +99,13 @@ if [ -n "${DOMAIN:-}" ] && command -v curl >/dev/null 2>&1; then
 	code="$(curl -s -o /dev/null -w '%{http_code}' --max-time 15 "https://${DOMAIN}/" 2>/dev/null)"
 	case "${code}" in
 	200) ok "https://${DOMAIN}/ returns 200 from the public edge" ;;
-	000) fail "https://${DOMAIN}/ is unreachable (DNS, firewall, or TLS). See RUNBOOK 'The certificate did not issue'." ;;
+	000) fail "https://${DOMAIN}/ is unreachable (DNS, firewall, or TLS). Check: docker compose -f ${COMPOSE_FILE} logs caddy | grep -i acme" ;;
 	*) fail "https://${DOMAIN}/ returned HTTP ${code}" ;;
 	esac
 fi
 
 # --- TLS certificate -----------------------------------------------------------------------
-# Caddy renews at two thirds of the lifetime, so a 90-day Let's Encrypt certificate should
-# never drop below 30 days. If it does, renewal is failing and nothing else will tell you.
+# Caddy renews at 2/3 of the lifetime, so a 90-day cert under 30 days means renewal is failing.
 if [ -n "${DOMAIN:-}" ] && command -v openssl >/dev/null 2>&1; then
 	emit ""
 	emit "TLS"
@@ -133,15 +126,13 @@ if [ -n "${DOMAIN:-}" ] && command -v openssl >/dev/null 2>&1; then
 fi
 
 # --- Disk ----------------------------------------------------------------------------------
-# The disk filling is the one failure that takes everything down at once: Caddy cannot write
-# its certificate store, Docker cannot write a layer, and the site stops renewing without
-# ever logging an error a human sees.
+# A full disk breaks cert storage and Docker writes, usually silently.
 emit ""
 emit "Disk"
 disk_pct="$(df -P / | awk 'NR==2 {gsub(/%/,"",$5); print $5}')"
 disk_avail="$(df -Ph / | awk 'NR==2 {print $4}')"
 if [ "${disk_pct}" -ge 90 ]; then
-	fail "/ is ${disk_pct}% full (${disk_avail} free). See RUNBOOK 'The disk filled up'."
+	fail "/ is ${disk_pct}% full (${disk_avail} free). Reclaim space: docker system prune -af --filter 'until=168h'"
 elif [ "${disk_pct}" -ge 80 ]; then
 	warn "/ is ${disk_pct}% full (${disk_avail} free)"
 else
@@ -165,10 +156,7 @@ else
 fi
 
 # --- Result --------------------------------------------------------------------------------
-# NOTHING ABOUT BACKUPS. There is no database and no user data: the only state on this box
-# is Caddy's certificate store, which is re-issuable in seconds. The recovery procedure for
-# this server is "run the deploy again from the source tree", and that is checked by the
-# containers section above rather than by counting dumps.
+# No backup checks: the only state is Caddy's re-issuable cert store.
 emit ""
 if [ "${FAILURES}" -gt 0 ]; then
 	emit "RESULT: ${FAILURES} failure(s), ${WARNINGS} warning(s)"
@@ -180,8 +168,7 @@ if [ "${WARNINGS}" -gt 0 ]; then
 else
 	emit "RESULT: all checks passed"
 fi
-# In --quiet mode a clean run says nothing at all, so a timer's journal holds only the runs
-# where something was wrong.
+# --quiet: a clean run prints nothing.
 if [ "${QUIET}" -eq 0 ] || [ "${WARNINGS}" -gt 0 ]; then
 	printf '%s' "${REPORT}"
 fi

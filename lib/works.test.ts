@@ -2,14 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { allWorks, chapterBySlug, workBySlug } from "./works";
 
-/**
- * These assert the parser against the real corpus, not a fixture.
- *
- * The parser makes one structural assumption — a `#` heading opens a chapter — and if a
- * document stops matching it, the failure is silent and ugly: the whole work renders as one
- * enormous untitled chapter with no navigation. That is the sort of defect nobody notices
- * until a reader tries to link to chapter 4. So the corpus itself is the fixture.
- */
+/** Parser tests against the real corpus, so a document that stops matching fails here. */
 
 const works = allWorks();
 
@@ -53,8 +46,7 @@ describe("the corpus", () => {
   });
 
   it("detects which works carry mathematics", () => {
-    // The philosophy dissertation has none; loading KaTeX's stylesheet for it would be
-    // 23 kB of CSS for no glyphs, so the flag decides that per work.
+    // Gates the KaTeX stylesheet per work.
     const byMath = Object.fromEntries(works.map((w) => [w.slug, w.hasMath]));
     expect(byMath["three-lemmas"]).toBe(true);
     expect(byMath["kakeya-multiplicity"]).toBe(true);
@@ -62,8 +54,7 @@ describe("the corpus", () => {
   });
 
   it("does not mistake a comment inside a code fence for a chapter", () => {
-    // `# Chapter` inside a fenced block is prose about code, not a document heading. Two of
-    // these works contain fenced blocks.
+    // `#` lines inside fenced code are not headings.
     for (const work of works) {
       for (const chapter of work.chapters) {
         expect(chapter.heading).not.toMatch(/^\s*(\/\/|const |let |function )/);
@@ -85,8 +76,7 @@ describe("the corpus", () => {
   });
 
   it("estimates reading time from prose, not from notation", () => {
-    // Two of these are dense with LaTeX. Counting `\binom{q+n-1}{n}` as words would make a
-    // maths chapter look longer to read than a philosophy one that genuinely is.
+    // LaTeX shouldn't count as words.
     for (const work of works) {
       expect(work.minutes).toBeGreaterThan(0);
       expect(work.words).toBeGreaterThan(1000);

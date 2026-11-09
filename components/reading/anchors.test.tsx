@@ -6,20 +6,9 @@ import { allWorks, type Chapter, type Work } from "@/lib/works";
 import { Prose } from "./prose";
 
 /**
- * THE TABLE OF CONTENTS MUST LAND.
- *
- * `Work.chapters[].sections[].id` is what every table-of-contents link on this site points
- * at. Nothing in the parser's own suite renders Markdown, so nothing there could tell whether
- * those ids exist in the HTML — and when this file was first written, fourteen of them did
- * not. `rehype-slug` slugs the *rendered* heading, and a rendered heading still contains the
- * raw LaTeX of its maths: "6.6 Beyond $\mathbb F_3$" became `#66-beyond-mathbb-f_3` while the
- * parser promised `#66-beyond`. Eleven maths headings and three headings containing "Erdős"
- * were silently dead links.
- *
- * So this renders every chapter of every work through the real component with the real plugin
- * chain, and checks the anchors against the real corpus. It is slow by the standards of this
- * suite and worth every second: a table of contents whose links do nothing is worse than no
- * table of contents, because the reader believes it.
+ * Renders every chapter through `Prose` and checks that each `Section.id` the TOC links to
+ * exists in the HTML. Headings with maths or non-ASCII letters are where `rehype-slug` alone
+ * disagrees with the parser.
  */
 
 const works = allWorks();
@@ -73,8 +62,7 @@ describe("section anchors resolve", () => {
   );
 
   it("regression: the headings that rehype-slug alone gets wrong", () => {
-    // Named explicitly so the three shapes of the bug cannot come back unnoticed: maths in a
-    // heading, a LaTeX macro leaking into a fragment, and a non-ASCII letter.
+    // Maths in a heading, a LaTeX macro in a fragment, and a non-ASCII letter.
     const threeLemmas = works.find((w) => w.slug === "three-lemmas");
     expect(threeLemmas).toBeDefined();
     if (!threeLemmas) return;

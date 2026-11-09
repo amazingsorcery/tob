@@ -2,14 +2,7 @@
 @import "./tokens.css";
 @import "./reading.css";
 
-/*
- * Motion.
- *
- * Tailwind v4 ships no enter/exit animation utilities and we add no plugin for them —
- * two classes cover every Radix data-state transition in the app. Both are inert under
- * prefers-reduced-motion, which is a correctness requirement, not a nicety: vestibular
- * disorders are common and this is a tool people use for hours.
- */
+/* Enter/exit animations for Radix data-state transitions; disabled under reduced motion. */
 @keyframes dm-fade-in {
   from { opacity: 0; }
   to { opacity: 1; }
@@ -62,7 +55,7 @@
 
   html {
     scroll-behavior: smooth;
-    /* Anchored playbook steps must not land under the sticky header. */
+    /* Keep anchored headings clear of the sticky header. */
     scroll-padding-top: 5rem;
     -webkit-text-size-adjust: 100%;
   }
@@ -76,17 +69,12 @@
     -webkit-font-smoothing: antialiased;
   }
 
-  /*
-   * A single visible focus style for anything reachable by keyboard. Radix components
-   * layer their own ring on top; this is the floor, so nothing can be focusable and
-   * invisible.
-   */
+  /* Baseline focus style; components may add their own ring. */
   :focus-visible {
     outline: 2px solid var(--ring);
     outline-offset: 2px;
   }
 
-  /* Domains, hashes, coordinates and commands are everywhere in this product. */
   code,
   kbd,
   samp,
@@ -101,10 +89,7 @@
 }
 
 @layer utilities {
-  /*
-   * Skip link: present in the DOM and reachable by Tab, off-screen until focused.
-   * `sr-only` alone would keep it hidden even when focused.
-   */
+  /* Skip link: off-screen until focused (`sr-only` would hide it even when focused). */
   .skip-link {
     position: absolute;
     left: -9999px;

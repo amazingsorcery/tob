@@ -1,13 +1,8 @@
 "use client";
 
 /**
- * The last resort: an error thrown by the root layout itself, before there is a <body> to put
- * `app/error.tsx` inside. It therefore has to render its own <html> and <body>, and it cannot
- * rely on anything the layout would have set up — including the fonts, which is why this file
- * names no font variable and no token that the base stylesheet does not already apply.
- *
- * It replaces the whole document, so it is deliberately plain. If this renders, something is
- * broken badly enough that a well-typeset apology would be the wrong priority.
+ * Errors thrown by the root layout. Renders its own <html>/<body> and can't rely on anything
+ * the layout sets up (e.g. fonts), so it's kept plain.
  */
 export default function GlobalError({ error }: { error: Error & { digest?: string } }) {
   return (

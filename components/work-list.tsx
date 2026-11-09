@@ -2,11 +2,7 @@ import Link from "next/link";
 
 import { allWorks } from "@/lib/works";
 
-/**
- * A compact list of every work. Used by the not-found pages, where the useful thing to offer
- * somebody who followed a broken link is the three things that do exist — the whole site is
- * three documents, so an index is cheaper than a search box and more honest than an apology.
- */
+/** Compact list of every work, used by the not-found pages. */
 export function WorkList({ headingId }: { headingId?: string }) {
   return (
     <ul aria-labelledby={headingId} className="mt-6 divide-y divide-border border-y border-border">

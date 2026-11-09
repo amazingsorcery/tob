@@ -1,10 +1,6 @@
 import { cn } from "@/lib/utils";
 
-/**
- * Loading placeholder. `aria-hidden` because the live region announcing "Loading…" is the
- * accessible signal — a screen reader reading out a grid of empty boxes is worse than
- * silence. Animation is suppressed under prefers-reduced-motion.
- */
+/** Loading placeholder. Hidden from screen readers; no animation under reduced motion. */
 export function Skeleton({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
   return (
     <div

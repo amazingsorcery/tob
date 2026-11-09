@@ -2,13 +2,9 @@ import { brand } from "@/config/brand";
 import type { Chapter, Work } from "@/lib/works";
 
 /**
- * JSON-LD for a work or a chapter, so the licence and the author are machine-readable on
- * every page and not only in a footer a crawler may never parse.
- *
- * Rendered as a string child of `<script>`. React writes string children of `<script>` as
- * raw text rather than escaping them, so this needs no `dangerouslySetInnerHTML` (which is
- * lint-banned here). The object is built from typed data, never from user input, and
- * `JSON.stringify` cannot emit `</script>` from these fields.
+ * JSON-LD (author, licence) for works and chapters. Rendered as a string child of
+ * `<script>`, which React writes unescaped, so no `dangerouslySetInnerHTML` is needed. Data
+ * comes from the committed corpus, not user input.
  */
 
 function base(work: Work) {
@@ -19,7 +15,6 @@ function base(work: Work) {
     copyrightHolder: { "@type": "Person", name: brand.author },
     inLanguage: "en",
     isAccessibleForFree: true,
-    // The credit a reuser must give, stated in the property built for it.
     creditText: `${brand.author}, "${work.title}", ${brand.licence.name}`,
     publisher: { "@type": "Organization", name: brand.name, url: brand.url },
   };

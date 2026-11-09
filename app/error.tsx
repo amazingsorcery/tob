@@ -2,17 +2,7 @@
 
 import { useEffect } from "react";
 
-/**
- * The error boundary for every route below it.
- *
- * `"use client"` is not a choice here: React requires an error boundary to be a client
- * component, because the reset callback runs in the browser. It is the only such file in the
- * app and it wraps nothing that renders on a healthy page.
- *
- * On a site whose pages are all static Markdown there is very little that can throw at
- * request time, which is exactly why this exists: whatever does throw will be something
- * nobody predicted, and the alternative to a boundary is an unstyled stack trace.
- */
+/** Route error boundary (must be a client component). */
 export default function Error({
   error,
   reset,
@@ -21,8 +11,7 @@ export default function Error({
   reset: () => void;
 }) {
   useEffect(() => {
-    // The digest is the only handle on the server-side stack, which Next deliberately does
-    // not send to the browser. Logging it is what makes a production report actionable.
+    // The digest links to the server-side stack, which Next doesn't send to the browser.
     console.error("Unhandled error rendering a page", error.digest ?? error.message);
   }, [error]);
 
@@ -51,9 +40,8 @@ export default function Error({
         >
           Try again
         </button>
-        {/* eslint-disable-next-line @next/next/no-html-link-for-pages -- Deliberate full
-            page load. A soft navigation from inside an error boundary re-renders the same
-            broken React tree, and the whole value of this link is that it starts over. */}
+        {/* eslint-disable-next-line @next/next/no-html-link-for-pages -- Full page load so
+            the broken React tree isn't reused. */}
         <a
           href="/"
           className="inline-flex min-h-11 items-center rounded-md border border-input px-5 text-sm font-medium text-foreground hover:bg-muted"

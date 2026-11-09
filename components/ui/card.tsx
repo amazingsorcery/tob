@@ -15,8 +15,7 @@ export function CardHeader({ className, ...props }: React.HTMLAttributes<HTMLDiv
 }
 
 export function CardTitle({ className, ...props }: React.HTMLAttributes<HTMLHeadingElement>) {
-  // Deliberately not a heading element: the caller chooses the level so that card lists
-  // do not break the document outline.
+  // Not a heading element; callers choose the heading level.
   return <div className={cn("font-semibold leading-tight tracking-tight", className)} {...props} />;
 }
 

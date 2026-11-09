@@ -8,13 +8,7 @@ import { allWorks } from "@/lib/works";
 
 import { normaliseDisplayMath, Prose } from "./prose";
 
-/**
- * What the renderer must do to the real corpus.
- *
- * Every assertion here started as a defect found by measuring the output rather than reading
- * the code, which is the only way any of them could have been found: all of them render
- * *something*, and something is what a screenshot shows.
- */
+/** Renderer checks against the real corpus. */
 
 const works = allWorks();
 const WORKS_DIR = join(process.cwd(), "content", "works");
@@ -47,13 +41,7 @@ const occurrences = (html: string, pattern: RegExp): number => (html.match(patte
 
 describe("display mathematics", () => {
   it("renders every $$…$$ block as display, not inline", () => {
-    /*
-     * REGRESSION. `micromark-extension-math` only treats `$$` as a display fence when the
-     * closing delimiter is on its own line, so all 77 of the corpus's one-line `$$…$$`
-     * equations parsed as inline maths: `display: 0, inline: 3637`. They rendered at inline
-     * size, mid-paragraph, with inline-style fractions — and nothing threw, which is why
-     * only counting the output finds it.
-     */
+    // micromark-extension-math parses one-line `$$…$$` as inline unless normalised.
     const expected = displayEquationsInSource();
     expect(expected).toBeGreaterThanOrEqual(70);
     const actual = rendered.reduce(
@@ -64,8 +52,7 @@ describe("display mathematics", () => {
   });
 
   it("gives every display equation a keyboard tab stop and a name", () => {
-    // Some of these are wider than a phone and scroll horizontally. A scroll container that
-    // cannot be focused cannot be scrolled from the keyboard — WCAG 2.1.1.
+    // Scroll containers need focus to be keyboard-scrollable (WCAG 2.1.1).
     for (const { work, html } of rendered) {
       const displays = occurrences(html, /class="katex-display"/g);
       const stops = occurrences(html, /class="katex-display" tabindex="0"/g);
@@ -89,11 +76,7 @@ describe("display mathematics", () => {
 
 describe("mathematics renders cleanly", () => {
   it("produces no KaTeX error node anywhere in the corpus", () => {
-    /*
-     * REGRESSION. Seven equations carried `\tag{4.1}`, which KaTeX accepts in display mode
-     * and rejects in inline mode. While the blocks above were being parsed as inline, those
-     * seven rendered as red error text in the middle of a proof.
-     */
+    // e.g. `\tag{…}` is only valid in display mode.
     for (const { work, html } of rendered) {
       expect(occurrences(html, /katex-error/g), `${work.slug} has a KaTeX error`).toBe(0);
     }
@@ -109,7 +92,7 @@ describe("mathematics renders cleanly", () => {
   });
 
   it("renders no mathematics at all for the work that contains none", () => {
-    // The reason `Work.hasMath` exists: this work must not load KaTeX's stylesheet either.
+    // This is why `Work.hasMath` gates the KaTeX stylesheet.
     const philosophy = rendered.find(({ work }) => !work.hasMath);
     expect(philosophy).toBeDefined();
     expect(philosophy && occurrences(philosophy.html, /class="katex/g)).toBe(0);
@@ -118,8 +101,7 @@ describe("mathematics renders cleanly", () => {
 
 describe("nothing overflows the page", () => {
   it("wraps every table in a focusable scroll container", () => {
-    // 232 tables, the widest with nine columns of set-builder notation. Unwrapped, that one
-    // widens the grid column, then the page, and the body text scrolls sideways with it.
+    // Unwrapped wide tables would make the whole page scroll sideways.
     for (const { work, html } of rendered) {
       const tables = occurrences(html, /<table/g);
       const boxes = occurrences(html, /<div class="scroll-box" tabindex="0" role="group"/g);
@@ -140,12 +122,7 @@ describe("nothing overflows the page", () => {
 
 describe("the corpus stays within what this renderer handles", () => {
   it("contains no images", () => {
-    /*
-     * There is no `img` override in `prose.tsx`, because Markdown carries no dimensions and
-     * `next/image` requires them. The corpus has none today. If one is ever authored this
-     * fails, which is the point: the decision about how to size it should be made once, by a
-     * person, and not discovered as a layout shift.
-     */
+    // `prose.tsx` has no `img` handling (Markdown has no dimensions for next/image).
     for (const file of readdirSync(WORKS_DIR).filter((f) => f.endsWith(".md"))) {
       const source = readFileSync(join(WORKS_DIR, file), "utf8");
       expect(/!\[[^\]]*\]\(/.test(source), `${file} contains an image`).toBe(false);
@@ -153,15 +130,8 @@ describe("the corpus stays within what this renderer handles", () => {
   });
 
   it("contains no raw HTML", () => {
-    /*
-     * `react-markdown` does not render raw HTML unless `rehype-raw` is added, and it is not
-     * added — so authored HTML is silently DROPPED rather than escaped or rendered, and a
-     * sentence would go missing with nothing to show for it.
-     *
-     * Matched on closing and void tags only. An opening-tag pattern gives false positives all
-     * over this corpus, because `$k+l-2<p$` and `$q>2$` are mathematics, not markup — the
-     * first version of this test failed on three inequalities in three-lemmas.
-     */
+    // Without `rehype-raw`, raw HTML is silently dropped. Only closing and void tags are
+    // matched, since inequalities like `$q>2$` look like opening tags.
     for (const file of readdirSync(WORKS_DIR).filter((f) => f.endsWith(".md"))) {
       const source = readFileSync(join(WORKS_DIR, file), "utf8");
       expect(/<\/[a-z][a-z0-9]*\s*>/i.test(source), `${file} contains a closing HTML tag`).toBe(

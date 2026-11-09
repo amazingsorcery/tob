@@ -2,10 +2,7 @@ import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 
 /**
- * The corpus: long-form academic works, read from `content/works/*.md` at build time.
- *
- * Each document is a single Markdown file with a fixed shape, and the shape is the reason
- * this parser can be small and strict rather than large and forgiving:
+ * Parses `content/works/*.md` at build time. Each file has a fixed shape:
  *
  *   # Title
  *   ## Subtitle
@@ -14,10 +11,8 @@ import { join } from "node:path";
  *   # Chapter 1. Name
  *   ## 1.1 Section
  *
- * A `#` heading opens a chapter; everything before the first one is front matter. That is
- * the only structural assumption, and `works.test.ts` asserts it holds for every file in
- * the corpus rather than trusting it — a document that stops matching should fail the build,
- * not render as one enormous untitled chapter.
+ * A `#` heading opens a chapter; everything before the first is front matter.
+ * `works.test.ts` checks this holds for every file.
  */
 
 const WORKS_DIR = join(process.cwd(), "content", "works");
@@ -63,23 +58,14 @@ export interface Work {
 }
 
 /**
- * Mirrors `github-slugger`, which is what `rehype-slug` uses, closely enough for the
- * in-page anchors this site generates. Kept deliberately small: the headings in this corpus
- * are numbered prose, not arbitrary user input.
- *
- * EXPORTED because the renderer has to produce exactly these ids. It does not agree with
- * `rehype-slug` on two kinds of heading in this corpus, and both differences are deliberate:
+ * Heading slug, close to `github-slugger` but with maths stripped and non-ASCII dropped:
  *
  *   "5.3 A lower bound on $D(q)$"  ->  53-a-lower-bound-on       (rehype-slug: …-on-dq)
  *   "6.6 Beyond $\mathbb F_3$"     ->  66-beyond                 (rehype-slug: 66-beyond-mathbb-f_3)
  *   "3.5 Erdős–Ginzburg–Ziv"       ->  35-erdsginzburgziv        (rehype-slug: 35-erdősginzburgziv)
  *
- * Maths is stripped here rather than transliterated, so a fragment never leaks a LaTeX macro
- * name; non-ASCII letters are dropped so a fragment never needs percent-encoding. Fourteen of
- * the 138 section anchors differ, which is fourteen dead table-of-contents links if the two
- * sides are allowed to compute a slug independently. `components/reading/rehype-heading-ids.ts`
- * therefore calls THIS function and sets the id before `rehype-slug` runs; the parity is
- * asserted over the whole corpus in `components/reading/anchors.test.tsx`.
+ * Exported so `rehype-heading-ids.ts` sets the same ids on rendered headings
+ * (checked by `anchors.test.tsx`).
  */
 export function headingSlug(text: string): string {
   return text
@@ -91,7 +77,7 @@ export function headingSlug(text: string): string {
     .replace(/\s+/g, "-");
 }
 
-/** Words of prose, ignoring math, so the reading estimate is not inflated by notation. */
+/** Prose word count, ignoring maths and code. */
 function countWords(markdown: string): number {
   return markdown
     .replace(/\$\$[\s\S]*?\$\$/g, " ")
@@ -112,7 +98,7 @@ function parse(slug: string, source: string): Work {
   let inFence = false;
   for (const [index, line] of lines.entries()) {
     if (line.startsWith("```")) inFence = !inFence;
-    // A `#` inside a fenced block is a comment in someone's code, not a chapter.
+    // Ignore `#` lines inside code fences.
     if (!inFence && /^# /.test(line)) starts.push(index);
   }
   if (starts.length < 2) {
@@ -187,7 +173,7 @@ function parse(slug: string, source: string): Work {
 
 let cache: readonly Work[] | null = null;
 
-/** Every work, ordered longest first — the substantial ones lead. */
+/** Every work, longest first. */
 export function allWorks(): readonly Work[] {
   if (cache) return cache;
   const files = readdirSync(WORKS_DIR).filter((f) => f.endsWith(".md"));

@@ -1,33 +1,13 @@
 # Production stack for a single Ubuntu LTS VPS.
 #
-#   caddy -> the only service with published ports. Terminates TLS, sets the security
-#            headers and the CSP, reverse-proxies everything to web:3000.
-#   web   -> the Next.js standalone server, serving 39 pages that were all rendered at
-#            build time. No published port; reachable only as web:3000.
+#   caddy -> TLS, security headers/CSP, reverse proxy to web:3000. Only published ports.
+#   web   -> Next.js standalone server for the prerendered pages. Not published.
 #
-# TWO long-running containers. There is no `db`: the site has no database, no auth, no API
-# and no request-time data, so there is nothing to store and nothing to migrate. The
-# profile-gated `migrate` one-shot went with it, and so did `redis` and `worker` before
-# that. If a database is ever proposed, it needs a decision record first — its absence is
-# why this deployment can be left alone for months.
-#
-# Usage:
+# Normally run via infra/deploy.sh (health gate + rollback), or directly:
 #   docker compose -f docker-compose.prod.yml up -d --build
-# In practice you run infra/deploy.sh, which does this in the right order with a health
-# gate and a rollback path.
 #
-# Interpolation vs container environment — two different mechanisms, and mixing them up is
-# the most common way this file breaks:
-#   * `${VAR}` below is substituted by the *compose CLI* from the shell and from the file
-#     literally named `.env` sitting next to this file.
-#   * `environment:` injects variables into the *container*.
-# Both read the same `.env`, which is why one file is enough. `${VAR:?message}` makes
-# compose refuse to start rather than substitute an empty string.
-#
-# THE APPLICATION READS NO ENVIRONMENT VARIABLE AT ALL. `web` therefore has no `env_file:`
-# and no `environment:` beyond what the image already sets. The only configuration in this
-# whole deployment is Caddy's DOMAIN and ACME_EMAIL. Do not add an env_file to `web` "just
-# in case": a container that reads nothing is a container that cannot be misconfigured.
+# `${VAR}` is interpolated by compose from the shell and the adjacent `.env`;
+# `${VAR:?msg}` refuses to start if unset. `web` reads no environment, so it has no env_file.
 
 name: ${COMPOSE_PROJECT_NAME:-app}
 
@@ -35,11 +15,7 @@ name: ${COMPOSE_PROJECT_NAME:-app}
 # Shared fragments
 # ---------------------------------------------------------------------------------------
 
-# Log rotation. This is not a nicety. The default json-file driver is UNBOUNDED: one
-# crash-looping container writing a stack trace 20 times a second fills the disk in days,
-# at which point Caddy can no longer write its certificate store and the site goes down in
-# a way that looks like everything broke at once. 10 MB x 3 files x 2 services = 60 MB
-# worst case. Applied to EVERY service.
+# Log rotation for every service; the json-file default is unbounded. 60 MB worst case.
 x-logging: &default-logging
   driver: json-file
   options:
@@ -66,21 +42,14 @@ services:
     cap_drop:
       - ALL
 
-    # server.js is PID 1 without this, so it inherits no SIGTERM default and never reaps
-    # zombies. `init: true` inserts docker-init, giving a clean `docker compose down`.
+    # docker-init as PID 1 for signal handling and zombie reaping.
     init: true
 
-    # NOT `ports:`. Publishing 3000 here would bypass Caddy entirely — the site would be
-    # reachable over plain HTTP on the VPS's public IP with none of the security headers,
-    # and UFW would not save you, because Docker writes its own iptables rules ahead of
-    # UFW's chain. The only correct exposure is through caddy.
+    # Not `ports:`: publishing would bypass Caddy, and Docker's iptables rules bypass UFW.
     expose:
       - "3000"
 
-    # Repeated from the Dockerfile so `docker compose ps` reports health even if the image
-    # is ever rebuilt without the HEALTHCHECK line, and so the interval is tunable here
-    # without a rebuild. A 200 on `/` IS the health check: every route is prerendered, so
-    # the front page answering proves the server is serving. There is no /api/health.
+    # Mirrors the Dockerfile HEALTHCHECK so it can be tuned without a rebuild.
     healthcheck:
       test:
         [
@@ -94,23 +63,14 @@ services:
       retries: 3
       start_period: 20s
 
-    # 512 MB. This is a Node process reading prerendered HTML off disk: it holds the Next
-    # server, its route manifests and a small fetch cache, and nothing else. The old stack
-    # asked for 2 GB because it held a Postgres pool, a source cache and live map payloads;
-    # none of that exists. 512 MB is roughly 4x a measured `next start` baseline and leaves
-    # the box mostly empty, which is the point.
-    # NOT MEASURED on the real VPS — see docs/deploy/RUNBOOK.md, "What has not been
-    # verified". If `docker stats` ever shows this near the limit, something has changed
-    # that needs explaining, not a bigger number.
+    # ~4x a local `next start` baseline; not yet measured on the VPS. If `docker stats`
+    # shows it near the limit, investigate before raising it.
     mem_limit: 512m
     mem_reservation: 128m
     cpus: 2.0
 
     networks:
-      # `site` ONLY, and `site` is internal. This container has no route to the internet
-      # and needs none: every page was rendered at build time, so nothing is fetched at run
-      # time. If it is ever compromised it cannot call out. The build is unaffected —
-      # `docker compose build` runs on the daemon's own network, not this one.
+      # Internal network only: no outbound access at run time. Builds use the daemon's network.
       - site
 
   # -------------------------------------------------------------------------------------
@@ -124,46 +84,34 @@ services:
     cap_drop:
       - ALL
     cap_add:
-      # Binding 80/443 inside the container. Nothing else is needed.
+      # Bind 80/443 inside the container.
       - NET_BIND_SERVICE
 
     ports:
       - "80:80" # ACME HTTP-01 challenge + the redirect to HTTPS
       - "443:443" # TLS
-      - "443:443/udp" # HTTP/3. Harmless if no client ever uses it.
+      - "443:443/udp" # HTTP/3
 
     environment:
-      # The Caddyfile reads these as {$DOMAIN} / {$ACME_EMAIL}. This is the whole reason
-      # the domain is written in no file: re-pointing at a different hostname is an .env
-      # edit plus `docker compose up -d caddy`, not a code change.
+      # Read by the Caddyfile as {$DOMAIN} / {$ACME_EMAIL}.
       DOMAIN: ${DOMAIN:?DOMAIN must be set in .env}
       ACME_EMAIL: ${ACME_EMAIL:?ACME_EMAIL must be set in .env}
-      # Set to https://acme-staging-v02.api.letsencrypt.org/directory while testing DNS or
-      # firewall changes. Let's Encrypt production allows 5 failed authorisations per
-      # hostname per hour; burning that during a misconfiguration locks issuance for the
-      # rest of the hour. Staging certificates are untrusted by browsers, which is how you
-      # know you are on staging.
+      # Use the staging directory while testing DNS/firewall changes (production rate-limits
+      # failed authorisations).
       ACME_CA: ${ACME_CA:-https://acme-v02.api.letsencrypt.org/directory}
       TZ: ${TZ:-UTC}
 
     volumes:
       - ./infra/Caddyfile:/etc/caddy/Caddyfile:ro
-      # /data holds the issued certificates AND the ACME account key. If this is not a
-      # named volume, every redeploy re-requests certificates, and five of those in an hour
-      # gets the hostname rate-limited for a week.
+      # Certificates and ACME account key; must persist or redeploys hit rate limits.
       - caddy_data:/data
-      # /config holds the autosaved JSON config. Losing it is survivable but noisy.
       - caddy_config:/config
 
     depends_on:
-      # service_started, deliberately not service_healthy. If web is broken we still want
-      # Caddy up: it can then complete the ACME challenge and serve a diagnosable 502
-      # instead of a connection refused with no certificate.
+      # Not service_healthy: Caddy should still come up (ACME, 502s) if web is broken.
       - web
 
-    # 256 MB. Generous for a proxy in front of a static site, and left generous on purpose:
-    # it is 3% of an 8 GB box, and a proxy that gets OOM-killed takes the certificates
-    # offline with it. This is the one limit where the cheap direction is up.
+    # Generous on purpose; an OOM-killed proxy takes the site offline.
     mem_limit: 256m
     mem_reservation: 64m
     cpus: 1.0
@@ -173,26 +121,12 @@ services:
       - site # to reach web:3000
 
 volumes:
-  # Certificates and the ACME account key. THE ONLY STATE ON THIS BOX. Losing it costs a
-  # re-issuance, not data — but re-issuing five times in an hour is rate-limited, so it is
-  # a named volume and `docker compose down -v` is never the right command here.
+  # The only state on the box. Don't use `docker compose down -v`.
   caddy_data:
   caddy_config:
 
-# ---------------------------------------------------------------------------------------
-# Networks — two, and each has exactly one reason
-# ---------------------------------------------------------------------------------------
-# `site` is `internal: true`, which means Docker creates no gateway on that bridge: a
-# container attached only to it has no route to the internet and none from it. `web` is on
-# `site` alone, so the application container cannot make an outbound connection even if
-# something in it tried to. That is a property of the topology, not a promise about the
-# code.
-#
-# `caddy` is on both. It takes its default route from `edge`, which is where the published
-# ports and the ACME traffic live, and reaches `web` over `site`.
-#
-# The old `backend` network is gone: it existed to keep Postgres off the internet, and
-# there is no Postgres.
+# `site` is internal (no gateway), so `web` has no internet access. `caddy` joins both and
+# uses `edge` for published ports and ACME.
 networks:
   edge:
     driver: bridge

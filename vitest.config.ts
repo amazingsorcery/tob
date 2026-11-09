@@ -8,15 +8,13 @@ export default defineConfig({
     environment: "jsdom",
     setupFiles: ["./tests/setup.ts"],
     include: ["**/*.test.ts", "**/*.test.tsx"],
-    exclude: ["node_modules/**", ".next/**", "tests/e2e/**", "docs/archive/**"],
+    exclude: ["node_modules/**", ".next/**", "tests/e2e/**"],
     coverage: {
       provider: "v8",
       include: ["lib/**/*.ts", "components/**/*.tsx", "app/**/*.tsx"],
       exclude: ["**/*.test.*", "**/*.d.ts"],
       thresholds: {
-        // The parser is the one piece of real logic on this site: everything else is
-        // presentation over static Markdown. A regression there breaks navigation for a
-        // whole dissertation, so it is held to a floor the rest is not.
+        // The parser is the only real logic, so it gets a coverage floor.
         "lib/works.ts": { statements: 90, branches: 75, functions: 90, lines: 90 },
       },
     },

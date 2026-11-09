@@ -9,22 +9,9 @@ import { brand } from "@/config/brand";
 import "./globals.css";
 
 /**
- * THE FACES.
- *
- * The `-loaded` suffix is required and is not a naming preference: `app/tokens.css` defines
- * `--font-serif` as `var(--font-serif-loaded), ui-serif, …`. Handing next/font the token name
- * itself would make the token reference itself and lose its whole fallback stack.
- *
- * Source Serif 4 is the reading face. It is a variable font, so one file covers the regular,
- * the semibold that sets every theorem label, and everything between.
- *
- * IBM Plex Sans is interface chrome only — header, navigation, table cells, metadata. Prose
- * is the serif; the product around it is not.
- *
- * IBM Plex Mono is `preload: false` deliberately. Three code listings exist in the entire
- * corpus, on two pages out of thirty-three. Preloading a face for the other thirty-one is a
- * request a reader pays for and never uses; without the preload the browser fetches it only
- * when a `<code>` actually needs it.
+ * Fonts. The `-loaded` variable names avoid clashing with the `--font-*` tokens in
+ * `app/tokens.css`, which wrap them with fallback stacks. Serif for prose, sans for UI.
+ * Mono isn't preloaded since very few pages contain code.
  */
 const serif = Source_Serif_4({
   subsets: ["latin"],
@@ -62,20 +49,12 @@ export const metadata: Metadata = {
     description: brand.description,
     url: brand.url,
   },
-  /*
-   * The author is deliberately unset in `config/brand.ts`. An unattributed page is honest;
-   * a page attributed to a placeholder is not, so the field is omitted entirely rather than
-   * filled with something plausible.
-   */
+  // Omitted entirely when no author is set.
   ...(brand.authorKnown ? { authors: [{ name: brand.author }] } : {}),
 };
 
 export const viewport: Viewport = {
-  /*
-   * `--background` in the dark theme. Stated as a literal here because a <meta> tag cannot
-   * read a custom property, and it is the same value tokens.css §1 gives `--slate-900`.
-   * `app/theme-colour.test.ts` asserts the two agree.
-   */
+  // Dark `--background` (`--slate-900`); a <meta> tag can't read custom properties.
   themeColor: "#0b0f15",
   colorScheme: "dark",
 };
@@ -84,24 +63,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={`${serif.variable} ${sans.variable} ${mono.variable}`}>
       <body className="min-h-dvh bg-background text-foreground antialiased">
-        {/*
-         * Hoisted into <head> by React. The machine-readable licence pointer, so a crawler
-         * that reads link relations finds the terms without parsing the footer or the JSON-LD.
-         */}
+        {/* Hoisted into <head> by React; machine-readable licence link. */}
         <link rel="license" href={brand.licence.url} />
-        {/*
-         * First thing in the tab order, hidden until focused. Without it, reaching a
-         * 36,000-word chapter by keyboard means tabbing past the whole header on every
-         * navigation.
-         */}
+        {/* First in the tab order, hidden until focused. */}
         <a href="#main" className="skip-link">
           Skip to content
         </a>
         <RouteFocus />
         <div className="flex min-h-dvh flex-col">
           <SiteHeader />
-          {/* `tabIndex` so the skip link actually moves focus here; without it the browser
-              scrolls to the target and leaves focus in the header. */}
+          {/* `tabIndex` so the skip link moves focus, not just scroll. */}
           <main id="main" tabIndex={-1} className="flex-1 outline-none">
             {children}
           </main>

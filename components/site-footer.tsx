@@ -1,15 +1,6 @@
 import { brand } from "@/config/brand";
 
-/**
- * The site footer.
- *
- * `brand.author` is empty until somebody sets it, and the rule from `config/brand.ts` is that
- * the UI renders NOTHING rather than a placeholder — an unattributed page is honest, a page
- * attributed to "Author Name" is not. So the attribution line appears only when there is one.
- *
- * The colophon is three verifiable facts about how the pages are set. It is here because on a
- * site whose entire content is typography, how the type was chosen is not decoration.
- */
+/** Site footer: attribution (only if an author is set), licence and colophon. */
 export function SiteFooter() {
   return (
     <footer className="print-hide mt-24 border-t border-border">
@@ -20,13 +11,7 @@ export function SiteFooter() {
         {brand.hasTagline ? (
           <p className="mt-1 text-sm text-muted-foreground">{brand.tagline}</p>
         ) : null}
-        {/*
-          The licence, once, in the smallest honest form. The owner's direction is that bots
-          may use the work but must always credit it; CC BY 4.0 says exactly that, and the
-          link is the canonical machine-readable terms. Everything else about the site is
-          deliberately unexplained — this is the one line that has to be explicit, because a
-          reuser who cannot find the terms cannot comply with them.
-        */}
+        {/* Licence link, so reusers can find the attribution terms. */}
         <p className="mt-6 text-xs text-muted-foreground">
           {`${brand.author}. `}
           <a

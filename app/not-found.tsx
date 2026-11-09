@@ -1,12 +1,8 @@
 import { WorkList } from "@/components/work-list";
 
 /**
- * The site-wide 404.
- *
- * There is no `loading.tsx` anywhere in this tree, and that is what keeps the status code
- * honest: a loading boundary at or above a segment flushes the response — committing HTTP 200
- * — before the page underneath can call `notFound()`. The page then renders as a 404 and the
- * server reports success, which a browser hides and every crawler believes.
+ * Site-wide 404. Don't add a `loading.tsx` anywhere: it flushes a 200 before `notFound()`
+ * can run.
  */
 export default function NotFound() {
   return (

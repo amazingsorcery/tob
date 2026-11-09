@@ -15,13 +15,8 @@ import { brand } from "@/config/brand";
 import { allWorks, workBySlug } from "@/lib/works";
 
 /**
- * A work's title page: what it argues, how long it is, and every way into it.
- *
- * NOTE THE ABSENCE OF `loading.tsx`, here and everywhere else on this site. Every page is
- * generated at build time from Markdown on disk; there is nothing to suspend on. A
- * `loading.tsx` at or above a segment would also commit an HTTP 200 before the page below it
- * can call `notFound()`, so `/no-such-work` would return a 404 page with a 200 status — which
- * is invisible in a browser and wrong to every crawler and every uptime check.
+ * A work's title page: abstract and contents. No `loading.tsx`: it would commit a 200
+ * before `notFound()` could run, so missing works would 404 with a 200 status.
  */
 
 export const dynamicParams = false;
@@ -72,9 +67,7 @@ export default async function WorkPage({ params }: { params: Promise<{ work: str
             {work.title}
           </h1>
           <p className="mt-3 text-xl text-foreground-secondary">{work.subtitle}</p>
-          {/* A dissertation's title page carries its author. Rendered only when there is
-              one — `config/brand.ts` is explicit that an unattributed page is honest and a
-              page attributed to a placeholder is not. */}
+          {/* Author, only when set. */}
           {brand.authorKnown ? (
             <p className="mt-4 text-base text-foreground-secondary">{brand.author}</p>
           ) : null}
@@ -138,18 +131,16 @@ export default async function WorkPage({ params }: { params: Promise<{ work: str
                   </div>
 
                   {chapter.sections.length > 0 ? (
-                    // Two columns from the tablet breakpoint: one work has 25 sections in a
-                    // single chapter, and a 1,100px column of links is a page nobody scans.
+                    // Two columns from the tablet breakpoint; some chapters have many sections.
                     <ul className="mt-2 md:columns-2 md:gap-x-10">
                       {chapter.sections.map((section) => (
                         <li key={section.id} className="break-inside-avoid">
                           <Link
                             href={`/${work.slug}/${chapter.slug}#${section.id}`}
-                            // `block` rather than `flex`, so a heading and the mathematics inside it stay
-                            // one run of text. See components/reading/chapter-toc.tsx.
+                            // `block`, not `flex`, so inline maths stays in the text run.
                             className="block min-h-11 py-3 text-sm leading-snug text-foreground-secondary hover:text-primary"
                           >
-                            {/* Typeset, not printed: eleven of these headings contain LaTeX. */}
+                            {/* Some headings contain LaTeX. */}
                             <InlineMarkdown>{section.heading}</InlineMarkdown>
                           </Link>
                         </li>
